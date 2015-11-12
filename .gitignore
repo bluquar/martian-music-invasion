@@ -35,3 +35,7 @@ MMI0/*
 !MMI0/Assets/*/*/*/*/*/*
 !MMI0/ProjectSettings
 !MMI0/ProjectSettings/*
+
+# Exclude files we don't want
+.DS_Store
+
