@@ -2,14 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class testingcommit {
-}
-
-public class Minion
-{
-    // Filler
-}
-
 public class Note
 {
     // Filler
@@ -17,10 +9,12 @@ public class Note
 
 public class Hero : MonoBehaviour {
     public float speed = 4f;
+	public float floatingFreq = 1.65f;
+	public float floatingAmp = 0.1f;
+	public float turningSpeed = 0.3f;
 
     public void MoveTo(Vector2 dest)
     {
-        Debug.Log(string.Format("Moving to {0}", dest));
         this.commandQ.Enqueue(new HeroCommand(dest));
     }
 
@@ -35,13 +29,6 @@ public class Hero : MonoBehaviour {
     }
 
     /****************************** PRIVATE ******************************/
-
-    protected void Start()
-    {
-        this.commandQ = new Queue<HeroCommand>();
-        this.state = HeroState.FLOATING;
-        this.floatingTime = 0f;
-    }
 
     private class HeroCommand
     {
@@ -86,7 +73,47 @@ public class Hero : MonoBehaviour {
     // During FLOATING state, keep track of time elapsed
     private float floatingTime;
 
-    /** Calculate total flight to get from start to finish
+	private float currentScale, destScale;
+	private bool turning;
+
+	// Equilibrium position. center of floating wave
+	private Vector2 eqPos;
+
+	// List of minions currently being carried
+	private LinkedList<Minion> minionsCarrying;
+
+	private Vector2 floatingDelta {
+		get {
+			return new Vector2(
+				0f,
+				this.floatingAmp * Mathf.Sin(this.floatingTime * this.floatingFreq)
+			);
+		}
+	}
+
+	private Vector2 position {
+		get {
+			return this.eqPos + this.floatingDelta;
+		}
+		set {
+			this.eqPos = value - this.floatingDelta;
+		}
+	}
+
+	protected void Start()
+	{
+		this.commandQ = new Queue<HeroCommand>();
+		this.state = HeroState.FLOATING;
+		this.floatingTime = 0f;
+		this.eqPos = this.transform.position;
+		this.currentScale = 1f;
+		this.destScale = 1f;
+		this.turning = false;
+
+		this.minionsCarrying = new LinkedList<Minion> ();
+	}
+	
+	/** Calculate total flight to get from start to finish
      */
     private float FlightTime(Vector2 start, Vector2 finish)
     {
@@ -97,6 +124,13 @@ public class Hero : MonoBehaviour {
     private void BeginCommand(HeroCommand cmd)
     {
         cmd.start = transform.position;
+
+		this.currentScale = this.transform.localScale.x;
+		this.destScale = 
+			(cmd.start.x < cmd.finish.x) ? 1f :
+				(cmd.start.x > cmd.finish.x) ? -1f : this.currentScale;
+		this.turning = true;
+		
         this.totalMoveTime = this.FlightTime(cmd.start, cmd.finish);
         this.currentMoveTime = 0f;
         this.state = HeroState.FLYING;
@@ -106,11 +140,13 @@ public class Hero : MonoBehaviour {
     private void FinishCommand()
     {
         HeroCommand cmd = this.currentCommand;
-        this.transform.position = cmd.finish;
+
+		this.floatingTime = (cmd.finish.y > cmd.start.y) ? 0 : (Mathf.PI / this.floatingFreq);
+		this.eqPos = cmd.finish;
 
         if (cmd.pickUp != null)
         {
-            // TODO
+			this.minionsCarrying.AddLast(new LinkedListNode<Minion>(this.currentCommand.pickUp));
         }
         if (cmd.turnIn != null)
         {
@@ -127,9 +163,34 @@ public class Hero : MonoBehaviour {
         }
     }
 
+	private void UpdateScale() 
+	{
+		if (!this.turning)
+			return;
+
+		if (this.currentScale > this.destScale) {
+			this.currentScale -= this.turningSpeed;
+			if (this.currentScale <= this.destScale) {
+				this.currentScale = this.destScale;
+				this.turning = false;
+			}
+		} else if (this.currentScale < this.destScale) {
+			this.currentScale += this.turningSpeed;
+			if (this.currentScale >= this.destScale) {
+				this.currentScale = this.destScale;
+				this.turning = false;
+			}
+		} else {
+			this.turning = false;
+		}
+
+		this.transform.localScale = new Vector3 (this.currentScale, 1, 1);
+	}
+
     private void SetFloatingTransform()
     {
-
+		this.transform.position = this.position;
+		this.UpdateScale ();
     }
 
     private void SetFlyingTransform()
@@ -144,14 +205,15 @@ public class Hero : MonoBehaviour {
         t = t * t * t * (t * (6f * t - 15f) + 10f);
 
         this.transform.position = Vector2.Lerp(cmd.start, cmd.finish, t);
-
+		this.UpdateScale ();
     }
 
     protected void FixedUpdate () {
-        if (this.state == HeroState.FLOATING && this.commandQ.Count > 0)
+        if (this.state == HeroState.FLOATING)
         {
-            this.floatingTime += Time.fixedDeltaTime;
-            this.BeginCommand(this.commandQ.Dequeue());
+            this.floatingTime = (this.floatingTime + Time.fixedDeltaTime) % (2f * Mathf.PI / this.floatingFreq);
+			if (this.commandQ.Count > 0)
+            	this.BeginCommand(this.commandQ.Dequeue());
         } else if (this.state == HeroState.FLYING)
         {
             this.currentMoveTime += Time.fixedDeltaTime;
