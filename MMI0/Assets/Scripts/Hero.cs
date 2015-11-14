@@ -253,7 +253,13 @@ public class Hero : MonoBehaviour {
 			this.turning = false;
 		}
 
-		this.transform.localScale = new Vector3 (this.currentScale, 1, 1);
+		Vector3 scale = new Vector3 (this.currentScale, 1, 1);
+		this.transform.localScale = scale;
+
+		foreach (Minion m in this.minionsCarrying) {
+			bool reversed = this.currentScale < 0;
+			m.SetTextScale(reversed);
+		}
 	}
 
     private void SetFloatingTransform()
