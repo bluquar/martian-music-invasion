@@ -183,12 +183,22 @@ public class Hero : MonoBehaviour {
         this.currentCommand = cmd;
     }
 
+	private static class Constants
+	{
+		public static readonly Vector3 NoScale = new Vector3 (1, 1, 1);
+	}
+	
+	private void SetDownMinions() {
+		foreach (Minion m in this.minionsCarrying) {
+			m.transform.parent = this.transform.parent;
+			m.transform.localScale = Constants.NoScale;
+		}
+		this.minionsCarrying.Clear();
+	}
+	
 	public void CompletePickupMinion(Minion minion) {
 		if (this.minionsCarrying.Contains (minion)) {
-			foreach (Minion m in this.minionsCarrying) {
-				m.transform.parent = this.transform.parent;
-			}
-			this.minionsCarrying.Clear();
+			this.SetDownMinions();
 		} else {
 			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
 			minion.transform.parent = this.transform;
