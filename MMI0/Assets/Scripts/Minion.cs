@@ -4,23 +4,14 @@ using System.Collections;
 public class Minion : MonoBehaviour {
 
 	public Hero hero;
-	
-	private void FlyHero()
-	{
-		Ray ray;
-		
-		#if (UNITY_ANDROID || UNITY_IPHONE || UNITY_WP8)
-		ray = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
-		#else
-		ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		#endif
-		
-		hero.PickUpMinion(new Vector2(ray.origin.x, ray.origin.y), this);
-		
+	public BackgroundClick background;
+
+	protected void Start () {
+		Physics2D.IgnoreCollision (this.GetComponent<Collider2D> (), background.GetComponent<Collider2D>());
 	}
 	
 	void OnMouseDown()
 	{
-		this.FlyHero();
+		hero.PickUpMinion (this);
 	}
 }

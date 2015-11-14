@@ -4,53 +4,99 @@ using System.Collections.Generic;
 
 public class Note
 {
+	public Vector3 position;
     // Filler
 }
 
 public class Hero : MonoBehaviour {
     public float speed = 4f;
 	public float floatingFreq = 1.65f;
-	public float floatingAmp = 0.1f;
-	public float turningSpeed = 0.3f;
+	public float floatingAmp = 0.28f;
+	public float turningSpeed = 0.18f;
 
-    public void MoveTo(Vector2 dest)
+    public void MoveTo(Vector3 dest)
     {
-        this.commandQ.Enqueue(new HeroCommand(dest));
+        this.commandQ.Enqueue(new MoveCommand(dest));
     }
 
-    public void PickUpMinion(Vector2 dest, Minion minion)
+    public void PickUpMinion(Minion minion)
     {
-        this.commandQ.Enqueue(new HeroCommand(dest, pickUp: minion));
+        this.commandQ.Enqueue(new PickupMinionCommand(minion));
     }
 
-    public void TurnInNote(Vector2 dest, Note note)
+    public void TurnInNote(Note note)
     {
-        this.commandQ.Enqueue(new HeroCommand(dest, turnIn: note));
+        this.commandQ.Enqueue(new TurninNoteCommand(note));
     }
 
     /****************************** PRIVATE ******************************/
 
-    private class HeroCommand
+    private abstract class HeroCommand
     {
         // <x, y> vectors representing the start and finish positions
         // for this command
-        public Vector2 start, finish;
+		public Vector3 start; 
+		public abstract Vector3 finish { get; }
 
-        // If a minion should be picked up when the command is finished,
-        // pickUp is used. Otherwise, pickUp is null.
-        public Minion pickUp;
-
-        // If a minion should be placed on a note when the command is finished,
-        // turnIn is used. Otherwise, turnIn is null.
-        public Note turnIn;
-
-        public HeroCommand(Vector2 destination, Minion pickUp = null, Note turnIn = null)
-        {
-            this.finish = destination;
-            this.pickUp = pickUp;
-            this.turnIn = turnIn;
-        }
+		public abstract void complete (Hero hero);
     }
+
+	private class MoveCommand : HeroCommand
+	{
+		public override Vector3 finish {
+			get {
+				return this.destination;
+			}
+		}
+
+		private Vector3 destination;
+
+		public MoveCommand(Vector3 destination) {
+			this.destination = destination;
+		}
+
+		public override void complete (Hero hero) { 
+			hero.CompleteMove ();
+		}
+	}
+
+	private class PickupMinionCommand : HeroCommand
+	{
+		public override Vector3 finish {
+			get {
+				return this.minion.transform.position;
+			}
+		}
+
+		private Minion minion;
+
+		public PickupMinionCommand(Minion minion) {
+			this.minion = minion;
+		}
+
+		public override void complete (Hero hero) {
+			hero.CompletePickupMinion (this.minion);
+		}
+	}
+
+	private class TurninNoteCommand : HeroCommand
+	{
+		public override Vector3 finish {
+			get {
+				return this.note.position;
+			}
+		}
+
+		private Note note;
+
+		public TurninNoteCommand(Note note) {
+			this.note = note;
+		}
+
+		public override void complete (Hero hero) {
+			hero.CompleteTurninNote (this.note);
+		}
+	}
 
     // Queue of commands to execute next
     private Queue<HeroCommand> commandQ;
@@ -137,6 +183,26 @@ public class Hero : MonoBehaviour {
         this.currentCommand = cmd;
     }
 
+	public void CompletePickupMinion(Minion minion) {
+		if (this.minionsCarrying.Contains (minion)) {
+			foreach (Minion m in this.minionsCarrying) {
+				m.transform.parent = this.transform.parent;
+			}
+			this.minionsCarrying.Clear();
+		} else {
+			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
+			minion.transform.parent = this.transform;
+		}
+	}
+
+	public void CompleteTurninNote(Note note) {
+		// TODO
+	}
+
+	public void CompleteMove() {
+
+	}
+
     private void FinishCommand()
     {
         HeroCommand cmd = this.currentCommand;
@@ -144,14 +210,7 @@ public class Hero : MonoBehaviour {
 		this.floatingTime = (cmd.finish.y > cmd.start.y) ? 0 : (Mathf.PI / this.floatingFreq);
 		this.eqPos = cmd.finish;
 
-        if (cmd.pickUp != null)
-        {
-			this.minionsCarrying.AddLast(new LinkedListNode<Minion>(this.currentCommand.pickUp));
-        }
-        if (cmd.turnIn != null)
-        {
-            // TODO
-        }
+		cmd.complete (this);
 
         if (this.commandQ.Count > 0)
         {
