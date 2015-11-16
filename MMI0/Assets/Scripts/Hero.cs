@@ -119,7 +119,7 @@ public class Hero : MonoBehaviour {
     // During FLOATING state, keep track of time elapsed
     private float floatingTime;
 
-	private float currentScale, destScale;
+	public float currentScale, destScale;
 	private bool turning;
 
 	// Equilibrium position. center of floating wave
@@ -172,11 +172,16 @@ public class Hero : MonoBehaviour {
         cmd.start = transform.position;
 
 		this.currentScale = this.transform.localScale.x;
-		this.destScale = 
-			(cmd.start.x < cmd.finish.x) ? 1f :
-				(cmd.start.x > cmd.finish.x) ? -1f : this.currentScale;
-		this.turning = true;
-		
+
+		if (cmd.start.x < cmd.finish.x) {
+			// Moving right
+			this.destScale = 1f;
+		} else if (cmd.start.x > cmd.finish.x) {
+			// Moving left
+			this.destScale = -1f;
+		}
+		this.turning = (this.destScale != this.currentScale);
+
         this.totalMoveTime = this.FlightTime(cmd.start, cmd.finish);
         this.currentMoveTime = 0f;
         this.state = HeroState.FLYING;
@@ -190,8 +195,7 @@ public class Hero : MonoBehaviour {
 	
 	private void SetDownMinions() {
 		foreach (Minion m in this.minionsCarrying) {
-			m.transform.parent = this.transform.parent;
-			m.transform.localScale = Constants.NoScale;
+			m.DetachToScene(this.transform.parent);
 		}
 		this.minionsCarrying.Clear();
 	}
@@ -202,6 +206,7 @@ public class Hero : MonoBehaviour {
 		} else {
 			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
 			minion.transform.parent = this.transform;
+			minion.rb2d.isKinematic = true;
 		}
 	}
 
@@ -258,7 +263,7 @@ public class Hero : MonoBehaviour {
 
 		foreach (Minion m in this.minionsCarrying) {
 			bool reversed = this.currentScale < 0;
-			m.SetTextScale(reversed);
+			m.SetScale(reversed);
 		}
 	}
 
