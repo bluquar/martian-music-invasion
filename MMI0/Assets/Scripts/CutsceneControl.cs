@@ -3,9 +3,15 @@ using System.Collections;
 
 public class CutsceneControl : MonoBehaviour {
 
+	public string nextScene;
+	string[] ButtonScenes = {"TitleScene", "LetsGoScene"};
+	string[] TimerScenes = {"IntroCutscene1", "IntroCutscene2", "IntroCutscene3", "IntroCutscene4"}; 
+	
 	// Use this for initialization
 	void Start () {
-		StartCoroutine (TimerChangeScene ());
+		if ((Application.loadedLevelName != "TitleScene") || (Application.loadedLevelName != "LetsGoScene")) {
+			TimerChangeScene ();
+		}
 	}
 	
 	// Update is called once per frame
@@ -20,6 +26,6 @@ public class CutsceneControl : MonoBehaviour {
 
 	IEnumerator TimerChangeScene() {
 		yield return new WaitForSeconds(3);
-		Application.LoadLevel("IntroCutscene2");
+		Application.LoadLevel(nextScene);
 	}
 }
