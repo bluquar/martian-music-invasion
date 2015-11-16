@@ -222,7 +222,9 @@ public class Hero : MonoBehaviour {
         HeroCommand cmd = this.currentCommand;
 
 		this.floatingTime = (cmd.finish.y > cmd.start.y) ? 0 : (Mathf.PI / this.floatingFreq);
+
 		this.eqPos = cmd.finish;
+		this.transform.position = this.eqPos;
 
 		cmd.complete (this);
 
