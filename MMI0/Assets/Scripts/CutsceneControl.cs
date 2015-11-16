@@ -9,8 +9,9 @@ public class CutsceneControl : MonoBehaviour {
 	
 	// Use this for initialization
 	void Start () {
+		print (nextScene);
 		if ((Application.loadedLevelName != "TitleScene") || (Application.loadedLevelName != "LetsGoScene")) {
-			TimerChangeScene ();
+			StartCoroutine(TimerChangeScene ());
 		}
 	}
 	
