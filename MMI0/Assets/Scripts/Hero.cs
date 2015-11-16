@@ -206,7 +206,7 @@ public class Hero : MonoBehaviour {
 		} else {
 			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
 			minion.transform.parent = this.transform;
-			minion.rb2d.isKinematic = true;
+			minion.DisableGravity();
 		}
 	}
 

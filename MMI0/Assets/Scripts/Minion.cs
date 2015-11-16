@@ -38,7 +38,7 @@ public class Minion : MonoBehaviour {
 		this.EnableGravity ();
 	}
 	
-	protected void OnMouseDown()
+	public void OnMouseDown()
 	{
 		hero.PickUpMinion (this);
 	}
