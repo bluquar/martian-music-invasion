@@ -119,7 +119,7 @@ public class Hero : MonoBehaviour {
     // During FLOATING state, keep track of time elapsed
     private float floatingTime;
 
-	private float currentScale, destScale;
+	public float currentScale, destScale;
 	private bool turning;
 
 	// Equilibrium position. center of floating wave
@@ -172,26 +172,41 @@ public class Hero : MonoBehaviour {
         cmd.start = transform.position;
 
 		this.currentScale = this.transform.localScale.x;
-		this.destScale = 
-			(cmd.start.x < cmd.finish.x) ? 1f :
-				(cmd.start.x > cmd.finish.x) ? -1f : this.currentScale;
-		this.turning = true;
-		
+
+		if (cmd.start.x < cmd.finish.x) {
+			// Moving right
+			this.destScale = 1f;
+		} else if (cmd.start.x > cmd.finish.x) {
+			// Moving left
+			this.destScale = -1f;
+		}
+		this.turning = (this.destScale != this.currentScale);
+
         this.totalMoveTime = this.FlightTime(cmd.start, cmd.finish);
         this.currentMoveTime = 0f;
         this.state = HeroState.FLYING;
         this.currentCommand = cmd;
     }
 
+	private static class Constants
+	{
+		public static readonly Vector3 NoScale = new Vector3 (1, 1, 1);
+	}
+	
+	private void SetDownMinions() {
+		foreach (Minion m in this.minionsCarrying) {
+			m.DetachToScene(this.transform.parent);
+		}
+		this.minionsCarrying.Clear();
+	}
+	
 	public void CompletePickupMinion(Minion minion) {
 		if (this.minionsCarrying.Contains (minion)) {
-			foreach (Minion m in this.minionsCarrying) {
-				m.transform.parent = this.transform.parent;
-			}
-			this.minionsCarrying.Clear();
+			this.SetDownMinions();
 		} else {
 			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
 			minion.transform.parent = this.transform;
+			minion.DisableGravity();
 		}
 	}
 
@@ -243,7 +258,13 @@ public class Hero : MonoBehaviour {
 			this.turning = false;
 		}
 
-		this.transform.localScale = new Vector3 (this.currentScale, 1, 1);
+		Vector3 scale = new Vector3 (this.currentScale, 1, 1);
+		this.transform.localScale = scale;
+
+		foreach (Minion m in this.minionsCarrying) {
+			bool reversed = this.currentScale < 0;
+			m.SetScale(reversed);
+		}
 	}
 
     private void SetFloatingTransform()

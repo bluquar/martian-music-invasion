@@ -16,8 +16,6 @@ public class BackgroundClick : MonoBehaviour
         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 #endif
 
-		Debug.Log ("Clicked on background");
-
         hero.MoveTo(new Vector3(ray.origin.x, ray.origin.y, 0));
 
     }
