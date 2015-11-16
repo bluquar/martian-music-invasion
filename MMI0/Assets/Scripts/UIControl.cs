@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class MoveToNextCutscene : MonoBehaviour {
+public class UIControl : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
@@ -13,8 +13,8 @@ public class MoveToNextCutscene : MonoBehaviour {
 	
 	}
 
-	// Move to next cutscene on click
-	public void OnMouseDown() {
-		Application.LoadLevel("IntroCutscene1");
+	public void ChangeScene(string levelName) 
+	{
+		Application.LoadLevel(levelName);
 	}
 }
