@@ -205,8 +205,7 @@ public class Hero : MonoBehaviour {
 			this.SetDownMinions();
 		} else {
 			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
-			minion.transform.parent = this.transform;
-			minion.DisableGravity();
+			minion.AttachToHero(this);
 		}
 	}
 

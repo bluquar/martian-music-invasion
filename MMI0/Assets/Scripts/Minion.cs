@@ -6,68 +6,99 @@ public class Minion : MonoBehaviour {
 	public Hero hero;
 	public BackgroundClick background;
 
-	private Collider2D backgroundCollider;
-	private Vector3 initialPosition;
+	// // Public Methods // //
 
-	public Rigidbody2D rb2d;
 
-	protected void Start () {
-		this.backgroundCollider = background.GetComponent<Collider2D> ();
-		this.initialPosition = this.transform.position;
-
-		//Physics2D.IgnoreCollision (this.GetComponent<Collider2D> (), this.backgroundCollider);
-		this.rb2d = GetComponent<Rigidbody2D> ();
-	}
-
-	private void ResetPosition() {
-		this.transform.position = this.initialPosition;
-		this.rb2d.velocity = Vector2.zero;
-	}
-
-	public void DisableGravity() {
-		this.rb2d.isKinematic = true;
-	}
-
-	public void EnableGravity() {
-		this.rb2d.isKinematic = false;
-	}
-
-	public void DetachToScene(Transform scene) {
+	/* Detach from the hero onto the scene as the parent
+	 */
+	public void DetachToScene(Transform scene) 
+	{
 		this.transform.parent = scene;
-		this.transform.localScale = Constants.ForwardScale;
+		this.SetScale (reversed: false);
 		this.EnableGravity ();
+		this.beingCarried = false;
 	}
 	
-	public void OnMouseDown()
+	/* Attach to the hero
+	 */
+	public void AttachToHero(Hero hero) 
 	{
-		hero.PickUpMinion (this);
-	}
-
-	private static class Constants
-	{
-		public static readonly Vector3 ForwardScale = new Vector3 (1, 1, 1);
-		public static readonly Vector3 BackwardScale = new Vector3 (-1, 1, 1);
+		this.beingCarried = true;
+		this.transform.parent = hero.transform;
+		this.DisableGravity();
 	}
 
 	/* Set the Minion's local scale based on whether supergirl is reversed.
 	 * Minions should never appear reversed
 	 */
-	public void SetScale(bool reversed) {
+	public void SetScale(bool reversed) 
+	{
 		this.transform.localScale = reversed ? Constants.BackwardScale : Constants.ForwardScale;
 	}
+	private static class Constants
+	{
+		public static readonly Vector3 ForwardScale = new Vector3 (1, 1, 1);
+		public static readonly Vector3 BackwardScale = new Vector3 (-1, 1, 1);
+	}
+	
+	// // Private Members // //
+	private Collider2D backgroundCollider; // The 2D Collider of the Background sprite
+	private Vector3 initialPosition;
+	
+	private Rigidbody2D rigidBody;
+	private bool beingCarried;
 
-	void OnTriggerEnter2D(Collider2D other) {
-		if (other != this.backgroundCollider) {
+	// // Event Handlers // //
+
+	protected void Awake () 
+	{
+		this.backgroundCollider = background.GetComponent<Collider2D> ();
+		this.rigidBody = GetComponent<Rigidbody2D> ();
+	}
+
+	protected void Start () 
+	{
+		this.initialPosition = this.transform.position;
+	}
+
+	protected void OnMouseDown()
+	{
+		hero.PickUpMinion (this);
+	}
+
+	/* Called when the minion touches something with a 2D Collider
+	 */
+	protected void OnTriggerEnter2D(Collider2D other) 
+	{
+		if (!this.beingCarried && (other != this.backgroundCollider)) {
 			// Landed on a platform
 			this.DisableGravity();
 		}
 	}
-
-	void OnTriggerExit2D(Collider2D other) {
-		if (other == this.backgroundCollider) {
+	
+	/* Called when the minion stops touching something with a 2D Collider
+	 * */
+	protected void OnTriggerExit2D(Collider2D other) {
+		if (!this.beingCarried && (other == this.backgroundCollider)) {
 			// Left the screen
 			this.ResetPosition();
-			this.EnableGravity();
 		}
+	}
+
+	// // Private Helper Methods // //
+	private void ResetPosition() 
+	{
+		this.transform.position = this.initialPosition;
+		this.rigidBody.velocity = Vector2.zero;
+	}
+	
+	private void DisableGravity() 
+	{
+		this.rigidBody.isKinematic = true;
+	}
+	
+	private void EnableGravity() 
+	{
+		this.rigidBody.isKinematic = false;
 	}
 }
