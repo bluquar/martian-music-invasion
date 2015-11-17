@@ -4,7 +4,17 @@ using System.Collections;
 public class BackgroundClick : MonoBehaviour
 {
 
-    public Hero hero;
+	private Hero hero;
+
+	public static BackgroundClick singleton;
+
+	protected void Awake() {
+		BackgroundClick.singleton = this;
+	}
+
+	protected void Start() {
+		this.hero = Hero.singleton;
+	}
 
     private void FlyHero()
     {

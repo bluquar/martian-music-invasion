@@ -2,17 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class Note
-{
-	public Vector3 position;
-    // Filler
-}
-
 public class Hero : MonoBehaviour {
     public float speed = 4f;
 	public float floatingFreq = 1.65f;
 	public float floatingAmp = 0.28f;
 	public float turningSpeed = 0.18f;
+
+	// There is only ever one hero, so make a reference to it
+	public static Hero singleton;
 
     public void MoveTo(Vector3 dest)
     {
@@ -21,7 +18,11 @@ public class Hero : MonoBehaviour {
 
     public void PickUpMinion(Minion minion)
     {
-        this.commandQ.Enqueue(new PickupMinionCommand(minion));
+		if (this.minionsCarrying.Contains (minion)) {
+			this.SetDownMinions ();
+		} else {
+			this.commandQ.Enqueue (new PickupMinionCommand (minion));
+		}
     }
 
     public void TurnInNote(Note note)
@@ -128,6 +129,8 @@ public class Hero : MonoBehaviour {
 	// List of minions currently being carried
 	private LinkedList<Minion> minionsCarrying;
 
+	private LevelManager levelManager;
+
 	private Vector2 floatingDelta {
 		get {
 			return new Vector2(
@@ -146,6 +149,10 @@ public class Hero : MonoBehaviour {
 		}
 	}
 
+	protected void Awake() {
+		Hero.singleton = this;
+	}
+
 	protected void Start()
 	{
 		this.commandQ = new Queue<HeroCommand>();
@@ -155,6 +162,8 @@ public class Hero : MonoBehaviour {
 		this.currentScale = 1f;
 		this.destScale = 1f;
 		this.turning = false;
+
+		this.levelManager = LevelManager.singleton;
 
 		this.minionsCarrying = new LinkedList<Minion> ();
 	}
@@ -201,16 +210,26 @@ public class Hero : MonoBehaviour {
 	}
 	
 	public void CompletePickupMinion(Minion minion) {
-		if (this.minionsCarrying.Contains (minion)) {
-			this.SetDownMinions();
-		} else {
-			this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
-			minion.AttachToHero(this);
+		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
+			this.SetDownMinions ();
+
+		this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
+		minion.AttachToHero(this);
+	}
+
+	private string getMinionLetters() {
+		string letters = "";
+		foreach (Minion m in this.minionsCarrying) {
+			letters += m.letter;
 		}
+		return letters;
 	}
 
 	public void CompleteTurninNote(Note note) {
-		// TODO
+		string noteLetters = note.letter;
+		string minionLetters = this.getMinionLetters ();
+		Debug.Log (string.Format ("noteLetters = {0}", noteLetters));
+		Debug.Log (string.Format ("minionLetters = {0}", minionLetters));
 	}
 
 	public void CompleteMove() {

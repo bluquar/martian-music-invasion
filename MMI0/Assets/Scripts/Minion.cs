@@ -1,13 +1,14 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class Minion : MonoBehaviour {
 
-	public Hero hero;
-	public BackgroundClick background;
+	private Hero hero;
+	private BackgroundClick background;
 
 	// // Public Methods // //
-
+	public string letter;
 
 	/* Detach from the hero onto the scene as the parent
 	 */
@@ -52,13 +53,25 @@ public class Minion : MonoBehaviour {
 
 	protected void Awake () 
 	{
-		this.backgroundCollider = background.GetComponent<Collider2D> ();
 		this.rigidBody = GetComponent<Rigidbody2D> ();
 	}
 
 	protected void Start () 
 	{
 		this.initialPosition = this.transform.position;
+
+		this.hero = Hero.singleton;
+
+		this.background = BackgroundClick.singleton;
+		this.backgroundCollider = background.GetComponent<Collider2D> ();
+
+		Text text = this.gameObject.GetComponentInChildren<Text> ();
+
+		//GameObject sprite = this.GetComponent<GameObject> ();
+		//Canvas canvas = sprite.GetComponent<Canvas> ();
+		//Text text = canvas.GetComponent<Text> ();
+		string letter = text.text;
+		this.letter = letter;
 	}
 
 	protected void OnMouseDown()
@@ -70,10 +83,19 @@ public class Minion : MonoBehaviour {
 	 */
 	protected void OnTriggerEnter2D(Collider2D other) 
 	{
-		if (!this.beingCarried && (other != this.backgroundCollider)) {
-			// Landed on a platform
-			this.DisableGravity();
+		if (this.beingCarried) {
+			// Ignore collisions while being carried
+			return;
 		}
+		if (other == this.backgroundCollider) {
+			// We're inside the background
+			return;
+		}
+		if (other.GetComponentInParent<Note> () != null) {
+			// Collided with a note
+			return;
+		}
+		this.DisableGravity();
 	}
 	
 	/* Called when the minion stops touching something with a 2D Collider
