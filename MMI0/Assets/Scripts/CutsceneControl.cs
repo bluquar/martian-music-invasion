@@ -4,8 +4,8 @@ using System.Collections;
 public class CutsceneControl : MonoBehaviour {
 
 	public string nextScene;
-	string[] ButtonScenes = {"TitleScene", "LetsGoScene"};
-	string[] TimerScenes = {"IntroCutscene1", "IntroCutscene2", "IntroCutscene3", "IntroCutscene4"}; 
+	string[] buttonScenes = {"TitleScene", "LetsGoScene"};
+	string[] timerScenes = {"IntroCutscene1", "IntroCutscene2", "IntroCutscene3", "IntroCutscene4"}; 
 	
 	// Use this for initialization
 	void Start () {
