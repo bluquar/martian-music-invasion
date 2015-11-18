@@ -3,8 +3,8 @@ using System.Collections;
 
 public class GameManager : MonoBehaviour {
 
-	static public int currentLevel = 2;
-	static public bool integratedVersion = true;
+	static public int currentLevel = 1;
+	static public bool integratedVersion = false;
 	static public int numOfLevels = 3;
 
 	void Awake() {
