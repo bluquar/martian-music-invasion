@@ -22,7 +22,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	private void VersionSetup() {
 		// set unlockTiles array equal to the right array set
-		if (LevelManager.integratedVersion == true) {
+		if (GameManager.integratedVersion == true) {
 			unlockTiles = musicUnlockTiles;
 			// disable the tiles from other version
 			disableOtherVersionTiles("comic");
