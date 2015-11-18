@@ -27,6 +27,7 @@ public class Hero : MonoBehaviour {
 
     public void TurnInNote(Note note)
     {
+		Debug.Log ("going to note...");
         this.commandQ.Enqueue(new TurninNoteCommand(note));
     }
 
@@ -208,6 +209,14 @@ public class Hero : MonoBehaviour {
 		}
 		this.minionsCarrying.Clear();
 	}
+
+	private void DestroyMinions() {
+		foreach (Minion m in this.minionsCarrying) {
+			Debug.Log("destroying minions");
+			Destroy (m.gameObject);
+		}
+		this.minionsCarrying.Clear ();
+	}
 	
 	public void CompletePickupMinion(Minion minion) {
 		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
@@ -228,8 +237,15 @@ public class Hero : MonoBehaviour {
 	public void CompleteTurninNote(Note note) {
 		string noteLetters = note.letter;
 		string minionLetters = this.getMinionLetters ();
-		Debug.Log (string.Format ("noteLetters = {0}", noteLetters));
-		Debug.Log (string.Format ("minionLetters = {0}", minionLetters));
+		Debug.Log (string.Format ("Matched? ({0} == {1}) = {2}", noteLetters, minionLetters, (noteLetters == minionLetters)));
+		if (noteLetters == minionLetters) {
+			// Great success! Hooray!! You're learning!
+			this.DestroyMinions ();
+			note.Match ();
+		} else {
+			this.SetDownMinions();
+			note.Fail ();
+		}
 	}
 
 	public void CompleteMove() {

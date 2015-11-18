@@ -7,6 +7,7 @@ public class LevelManager : MonoBehaviour {
 
 	public static LevelManager singleton;
 
+
 	private static class Constants
 	{
 		public static readonly uint firstChordLevel = 16;
@@ -16,7 +17,27 @@ public class LevelManager : MonoBehaviour {
 		return this.levelNumber >= Constants.firstChordLevel;
 	}
 
-	private int notesRemaining;
+	public void CorrectMatch(Note note) {
+		this.notesRemaining--;
+
+		if (this.notesRemaining == 0) {
+			GameManager.currentLevel++;
+			Application.LoadLevel("LevelSelection");
+		}
+
+		// TODO
+	}
+
+	public void IncorrectMatch(Note note) {
+		// TODO
+	}
+
+	public void RegisterNote(Note note) {
+		this.notesRemaining++;
+		// TODO
+	}
+
+	private uint notesRemaining;
 
 	void Awake () {
 		LevelManager.singleton = this;

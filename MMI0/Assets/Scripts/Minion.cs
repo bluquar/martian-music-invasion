@@ -64,14 +64,6 @@ public class Minion : MonoBehaviour {
 
 		this.background = BackgroundClick.singleton;
 		this.backgroundCollider = background.GetComponent<Collider2D> ();
-
-		Text text = this.gameObject.GetComponentInChildren<Text> ();
-
-		//GameObject sprite = this.GetComponent<GameObject> ();
-		//Canvas canvas = sprite.GetComponent<Canvas> ();
-		//Text text = canvas.GetComponent<Text> ();
-		string letter = text.text;
-		this.letter = letter;
 	}
 
 	protected void OnMouseDown()
