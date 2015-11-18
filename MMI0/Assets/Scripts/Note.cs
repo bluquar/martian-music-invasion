@@ -4,13 +4,25 @@ using System.Collections;
 public class Note : MonoBehaviour {
 
 	public string letter;
+	public uint number;
 
 	private Hero hero;
+	private LevelManager levelManager;
 
 	public Vector3 position {
 		get {
 			return this.transform.position;
 		}
+	}
+
+	public void Match() {
+		this.levelManager.CorrectMatch (this);
+		Debug.Log ("Destroying note");
+		Destroy (this.gameObject);
+	}
+
+	public void Fail() {
+		this.levelManager.IncorrectMatch (this);
 	}
 
 	private BoxCollider2D bc;
@@ -23,6 +35,9 @@ public class Note : MonoBehaviour {
 		this.bc.isTrigger = true;
 
 		this.hero = Hero.singleton;
+		this.levelManager = LevelManager.singleton;
+		this.levelManager.RegisterNote (this);
+
 	}
 	
 	// Update is called once per frame
@@ -31,6 +46,7 @@ public class Note : MonoBehaviour {
 	}
 
 	protected void OnMouseDown() {
+		Debug.Log ("clicked");
 		this.hero.TurnInNote (this);
 	}
 }
