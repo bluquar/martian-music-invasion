@@ -16,6 +16,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 	
 	}
 
+
+
 	// The two arrays dependent on version
 	public GameObject[] musicUnlockTiles;
 	public GameObject[] comicUnlockTiles;
@@ -25,16 +27,26 @@ public class LevelSelectionGrid : MonoBehaviour {
 		if (GameManager.integratedVersion == true) {
 			unlockTiles = musicUnlockTiles;
 			// disable the tiles from other version
-			disableOtherVersionTiles("comic");
+			disableTilesFor("comicLocks");
 		} else {
 			unlockTiles = comicUnlockTiles;
 			// disable the tiles from other version
-			disableOtherVersionTiles("music");
+			disableTilesFor("musicLocks");
 		}
 	}
 
-	private void disableOtherVersionTiles(string version) {
-		// fill in code
+	private void disableTilesFor(string version) {
+		if (version == "comicLocks") {
+			// disable all of the music lock tiles 
+			for (int i = 0; i < GameManager.numOfLevels; i++) {
+				comicUnlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
+			}
+		} else if (version == "musicLocks") {
+			// disable all of the comic lock tiles
+			for (int i = 0; i < GameManager.numOfLevels; i++) {
+				musicUnlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
+			}
+		}
 	}
 }
 
