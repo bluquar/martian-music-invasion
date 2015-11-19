@@ -21,11 +21,15 @@ public class LevelManager : MonoBehaviour {
 		this.notesRemaining--;
 
 		if (this.notesRemaining == 0) {
-			GameManager.currentLevel++;
-			Application.LoadLevel("LevelSelection");
+			this.CompleteLevel();
 		}
 
 		// TODO
+	}
+
+	public void CompleteLevel() {
+		GameManager.currentLevel++;
+		Application.LoadLevel ("LevelSelection");
 	}
 
 	public void IncorrectMatch(Note note) {
@@ -46,12 +50,14 @@ public class LevelManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-	
+		
 	}
 	
 	// Update is called once per frame
 	void Update () {
-	
+		if (Input.GetKey(KeyCode.Space)) {
+			this.CompleteLevel();
+		}
 	}
 
 }
