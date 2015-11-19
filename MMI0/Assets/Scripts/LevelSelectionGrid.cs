@@ -70,6 +70,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	}
 
 	public void PlayLevel() {
+		playLevelButton.transform.Translate (playLevelButton.transform.position.x + 150, playLevelButton.transform.position.y, playLevelButton.transform.position.z);
 		Application.LoadLevel("Level" + GameManager.currentLevel);
 	}
 }
