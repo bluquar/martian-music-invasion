@@ -29,10 +29,9 @@ public class Note : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		this.bc = this.gameObject.AddComponent <BoxCollider2D>();
-
-		this.bc.enabled = true;
-		this.bc.isTrigger = true;
+		//this.bc = this.gameObject.AddComponent <BoxCollider2D>();
+		//this.bc.enabled = true;
+		//this.bc.isTrigger = true;
 
 		this.hero = Hero.singleton;
 		this.levelManager = LevelManager.singleton;
