@@ -4,7 +4,17 @@ using System.Collections;
 public class LevelSelectionGrid : MonoBehaviour {
 
 	// unlockTiles is set equal to the version of the game
-	public GameObject[] unlockTiles;
+	private GameObject[] unlockTiles;
+	private GameObject playLevelButton;
+
+	// The two arrays dependent on version
+	public GameObject[] musicUnlockTiles;
+	public GameObject[] comicUnlockTiles;
+	
+	// The two play buttons dependent on verison
+	public GameObject musicPlayButton;
+	public GameObject comicPlayButton;
+
 
 	// Use this for initialization
 	void Start () {
@@ -17,23 +27,24 @@ public class LevelSelectionGrid : MonoBehaviour {
 	
 	}
 
-
-
-	// The two arrays dependent on version
-	public GameObject[] musicUnlockTiles;
-	public GameObject[] comicUnlockTiles;
-
 	private void VersionSetup() {
 		// set unlockTiles array equal to the right array set
 		if (GameManager.integratedVersion == true) {
+			// disable the tiles from other version
 			unlockTiles = musicUnlockTiles;
-			// disable the tiles from other version
 			DisableTilesFor("comicLocks");
+			// disable comic play button
+			playLevelButton = musicPlayButton;
+			comicPlayButton.SetActive (false);
 		} else {
-			unlockTiles = comicUnlockTiles;
 			// disable the tiles from other version
+			unlockTiles = comicUnlockTiles;
 			DisableTilesFor("musicLocks");
+			// disable music play button
+			playLevelButton = musicPlayButton;
+			musicPlayButton.SetActive(false);
 		}
+
 	}
 
 	private void DisableTilesFor(string version) {
@@ -56,6 +67,10 @@ public class LevelSelectionGrid : MonoBehaviour {
 		for (int i = 0; i < GameManager.currentLevel; i++) {
 			unlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
 		}
+	}
+
+	public void PlayLevel() {
+		Application.LoadLevel("Level" + GameManager.currentLevel);
 	}
 }
 
