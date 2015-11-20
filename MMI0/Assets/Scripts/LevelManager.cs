@@ -9,10 +9,10 @@ public class LevelManager : MonoBehaviour {
 
 	public static LevelManager singleton;
 
-	private LinkedList<Minion> minions;
-	private LinkedList<Minion> minionsAutoclicked;
-	private LinkedList<Note> notes;
-	private LinkedList<Note> notesAutoclicked;
+	private List<Minion> minions;
+	private List<Minion> minionsAutoclicked;
+	private List<Note> notes;
+	private List<Note> notesAutoclicked;
 	private Random random;
 
 	private static class Constants
@@ -34,6 +34,26 @@ public class LevelManager : MonoBehaviour {
 		// TODO
 	}
 
+	public bool StillNeedsMinion(Minion m) {
+		string letter = m.letter;
+		foreach (Minion other in this.minions) {
+			if (other == m)
+				continue;
+			if (other.letter == letter)
+				return false;
+		}
+		foreach (Note note in this.notes) {
+			if (note.letter == letter)
+				return true;
+		}
+		return false;
+	}
+
+	public void DoneWithMinion(Minion m) {
+		if (this.minionsAutoclicked.Contains (m))
+			this.minionsAutoclicked.Remove (m);
+	}
+
 	public void CompleteLevel() {
 		GameManager.currentLevel++;
 		Application.LoadLevel ("LevelSelection");
@@ -45,11 +65,11 @@ public class LevelManager : MonoBehaviour {
 
 	public void RegisterNote(Note note) {
 		this.notesRemaining++;
-		this.notes.AddLast (new LinkedListNode<Note> (note));
+		this.notes.Add (note);
 	}
 
 	public void RegisterMinion(Minion minion) {
-		this.minions.AddLast (new LinkedListNode<Minion> (minion));
+		this.minions.Add (minion);
 	}
 
 	public void DeregisterNote(Note note) {
@@ -66,10 +86,10 @@ public class LevelManager : MonoBehaviour {
 		LevelManager.singleton = this;
 		this.notesRemaining = 0;
 
-		this.notes = new LinkedList<Note> ();
-		this.notesAutoclicked = new LinkedList<Note> ();
-		this.minions = new LinkedList<Minion> ();
-		this.minionsAutoclicked = new LinkedList<Minion> ();
+		this.notes = new List<Note> ();
+		this.notesAutoclicked = new List<Note> ();
+		this.minions = new List<Minion> ();
+		this.minionsAutoclicked = new List<Minion> ();
 	}
 
 	// Use this for initialization
@@ -106,8 +126,8 @@ public class LevelManager : MonoBehaviour {
 			i = Random.Range (0, minions.Count);
 			Minion minion = minions[i];
 
-			this.minionsAutoclicked.AddLast(minion);
-			this.notesAutoclicked.AddLast(note);
+			this.minionsAutoclicked.Add(minion);
+			this.notesAutoclicked.Add(note);
 
 			Hero.singleton.PickUpMinion(minion);
 			Hero.singleton.TurnInNote(note);

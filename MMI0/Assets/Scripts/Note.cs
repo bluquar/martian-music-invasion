@@ -11,6 +11,8 @@ public class Note : MonoBehaviour {
 
 	public Vector3 position {
 		get {
+			if (this == null)
+				Debug.Log ("blah");
 			return this.transform.position;
 		}
 	}

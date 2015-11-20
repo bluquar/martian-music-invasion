@@ -15,7 +15,7 @@ public class Minion : MonoBehaviour {
 	public void DetachToScene(Transform scene) 
 	{
 		this.transform.parent = scene;
-		this.SetScale (reversed: false);
+		this.SetScale (/*reversed: */ false);
 		this.EnableGravity ();
 		this.beingCarried = false;
 	}
@@ -102,7 +102,7 @@ public class Minion : MonoBehaviour {
 	}
 
 	// // Private Helper Methods // //
-	private void ResetPosition() 
+	public void ResetPosition() 
 	{
 		this.transform.position = this.initialPosition;
 		this.rigidBody.velocity = Vector2.zero;

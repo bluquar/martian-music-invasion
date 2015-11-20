@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
+
 public class Hero : MonoBehaviour {
     public float speed = 4f;
 	public float floatingFreq = 1.65f;
@@ -41,6 +43,7 @@ public class Hero : MonoBehaviour {
 		public abstract Vector3 finish { get; }
 
 		public abstract void complete (Hero hero);
+		public abstract bool stillValid ();
     }
 
 	private class MoveCommand : HeroCommand
@@ -59,6 +62,10 @@ public class Hero : MonoBehaviour {
 
 		public override void complete (Hero hero) { 
 			hero.CompleteMove ();
+		}
+
+		public override bool stillValid () {
+			return true;
 		}
 	}
 
@@ -79,6 +86,10 @@ public class Hero : MonoBehaviour {
 		public override void complete (Hero hero) {
 			hero.CompletePickupMinion (this.minion);
 		}
+
+		public override bool stillValid () {
+			return this.minion.gameObject != null;
+		}
 	}
 
 	private class TurninNoteCommand : HeroCommand
@@ -97,6 +108,10 @@ public class Hero : MonoBehaviour {
 
 		public override void complete (Hero hero) {
 			hero.CompleteTurninNote (this.note);
+		}
+
+		public override bool stillValid () {
+			return this.note.gameObject != null;
 		}
 	}
 
@@ -128,7 +143,7 @@ public class Hero : MonoBehaviour {
 	private Vector2 eqPos;
 
 	// List of minions currently being carried
-	private LinkedList<Minion> minionsCarrying;
+	private List<Minion> minionsCarrying;
 
 	private LevelManager levelManager;
 
@@ -166,7 +181,7 @@ public class Hero : MonoBehaviour {
 
 		this.levelManager = LevelManager.singleton;
 
-		this.minionsCarrying = new LinkedList<Minion> ();
+		this.minionsCarrying = new List<Minion> ();
 	}
 	
 	/** Calculate total flight to get from start to finish
@@ -212,8 +227,14 @@ public class Hero : MonoBehaviour {
 
 	private void DestroyMinions() {
 		foreach (Minion m in this.minionsCarrying) {
-			this.levelManager.DeregisterMinion(m);
-			Destroy (m.gameObject);
+			if (this.levelManager.StillNeedsMinion(m)) {
+				m.DetachToScene(this.transform.parent);
+				m.ResetPosition();
+				this.levelManager.DoneWithMinion(m);
+			} else {
+				this.levelManager.DeregisterMinion(m);
+				Destroy (m.gameObject);
+			}
 		}
 		this.minionsCarrying.Clear ();
 	}
@@ -222,7 +243,7 @@ public class Hero : MonoBehaviour {
 		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
 			this.SetDownMinions ();
 
-		this.minionsCarrying.AddLast (new LinkedListNode<Minion> (minion));
+		this.minionsCarrying.Add (minion);
 		minion.AttachToHero(this);
 	}
 
@@ -261,13 +282,20 @@ public class Hero : MonoBehaviour {
 		this.eqPos = cmd.finish;
 		this.transform.position = this.eqPos;
 
-		cmd.complete (this);
+		if (cmd.stillValid())
+			cmd.complete (this);
 
-        if (this.commandQ.Count > 0)
-        {
-            this.BeginCommand(this.commandQ.Dequeue());
-        } else
-        {
+		bool startingNewCommand = false;
+
+        while (this.commandQ.Count > 0) {
+			HeroCommand nextCommand = this.commandQ.Dequeue();
+			if (nextCommand.stillValid()) {
+				this.BeginCommand(nextCommand);
+				startingNewCommand = true;
+				break;
+			}
+        }
+		if (!startingNewCommand) {
             this.state = HeroState.FLOATING;
             this.currentCommand = null;
         }
