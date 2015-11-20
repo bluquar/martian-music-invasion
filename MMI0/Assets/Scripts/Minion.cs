@@ -64,6 +64,8 @@ public class Minion : MonoBehaviour {
 
 		this.background = BackgroundClick.singleton;
 		this.backgroundCollider = background.GetComponent<Collider2D> ();
+
+		LevelManager.singleton.RegisterMinion (this);
 	}
 
 	protected void OnMouseDown()

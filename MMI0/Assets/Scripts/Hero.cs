@@ -212,7 +212,7 @@ public class Hero : MonoBehaviour {
 
 	private void DestroyMinions() {
 		foreach (Minion m in this.minionsCarrying) {
-			Debug.Log("destroying minions");
+			this.levelManager.DeregisterMinion(m);
 			Destroy (m.gameObject);
 		}
 		this.minionsCarrying.Clear ();

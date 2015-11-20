@@ -17,7 +17,7 @@ public class Note : MonoBehaviour {
 
 	public void Match() {
 		this.levelManager.CorrectMatch (this);
-		Debug.Log ("Destroying note");
+		this.levelManager.DeregisterNote (this);
 		Destroy (this.gameObject);
 	}
 
