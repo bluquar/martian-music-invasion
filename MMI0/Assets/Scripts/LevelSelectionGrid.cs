@@ -19,6 +19,10 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		VersionSetup();
+
+		// Move the Play Level button after each level is completed
+		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
+
 		RemoveUnlockedLevelTiles ();
 	}
 	
@@ -70,7 +74,6 @@ public class LevelSelectionGrid : MonoBehaviour {
 	}
 
 	public void PlayLevel() {
-		playLevelButton.transform.Translate (playLevelButton.transform.position.x + 150, playLevelButton.transform.position.y, playLevelButton.transform.position.z);
 		Application.LoadLevel("Level" + GameManager.currentLevel);
 	}
 }
