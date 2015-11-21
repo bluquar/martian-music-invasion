@@ -39,7 +39,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 			// disable comic play button
 			playLevelButton = musicPlayButton;
 
-			Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
+			//Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
 			//playLevelButton.transform.position = comicUnlockTiles[GameManager.currentLevel-1].transform.position;
 
 			comicPlayButton.SetActive (false);
@@ -50,7 +50,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 			// disable music play button
 			playLevelButton = comicPlayButton;
 
-			Debug.Log (string.Format ("{0}: comicPlayButton", GameManager.currentLevel));
+			//Debug.Log (string.Format ("{0}: comicPlayButton", GameManager.currentLevel));
 			//playLevelButton.transform.position = musicUnlockTiles[GameManager.currentLevel-1].transform.position;
 
 			musicPlayButton.SetActive(false);

@@ -273,6 +273,11 @@ public class Hero : MonoBehaviour {
 
 	}
 
+	public void Caffeinate() {
+		this.speed *= 1.2f;
+		this.turningSpeed *= 1.2f;
+	}
+
     private void FinishCommand()
     {
         HeroCommand cmd = this.currentCommand;

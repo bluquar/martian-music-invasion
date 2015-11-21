@@ -96,41 +96,62 @@ public class LevelManager : MonoBehaviour {
 	void Start () {
 		
 	}
-	
+
+	private bool autoplay = false;
+
+	private void AutoMatch() {
+		List<Note> notes = new List<Note>();
+		foreach (Note n in this.notes) {
+			if (!this.notesAutoclicked.Contains(n))
+				notes.Add(n);
+		}
+		if (notes.Count == 0)
+			return;
+		int i = Random.Range (0, notes.Count);
+		Note note = notes[i];
+		
+		string letter = note.letter;
+		
+		List<Minion> minions = new List<Minion>();
+		foreach (Minion m in this.minions) {
+			if (!this.minionsAutoclicked.Contains(m) && (m.letter == letter))
+				minions.Add(m);
+		}
+		if (minions.Count == 0)
+			return;
+		
+		i = Random.Range (0, minions.Count);
+		Minion minion = minions[i];
+		
+		this.minionsAutoclicked.Add(minion);
+		this.notesAutoclicked.Add(note);
+		
+		Hero.singleton.PickUpMinion(minion);
+		Hero.singleton.TurnInNote(note);
+	}
+
 	// Update is called once per frame
 	void Update () {
-		if (Input.GetKeyDown(KeyCode.Space)) {
+		if (Input.GetKeyDown (KeyCode.Space)) {
 			this.CompleteLevel();
-		
-		} else if (Input.GetKeyDown (KeyCode.M)) {
-			List<Note> notes = new List<Note>();
-			foreach (Note n in this.notes) {
-				if (!this.notesAutoclicked.Contains(n))
-					notes.Add(n);
-			}
-			if (notes.Count == 0)
-				return;
-			int i = Random.Range (0, notes.Count);
-			Note note = notes[i];
+		} 
 
-			string letter = note.letter;
+		if (Input.GetKeyDown (KeyCode.Return)) {
+			for (int i = 0; i < 12; i++)
+				Hero.singleton.Caffeinate();
+			this.autoplay = true;
+		}
 
-			List<Minion> minions = new List<Minion>();
-			foreach (Minion m in this.minions) {
-				if (!this.minionsAutoclicked.Contains(m) && (m.letter == letter))
-					minions.Add(m);
-			}
-			if (minions.Count == 0)
-				return;
+		if (Input.GetKeyDown (KeyCode.A)) {
+			this.autoplay = !this.autoplay;
+		} 
 
-			i = Random.Range (0, minions.Count);
-			Minion minion = minions[i];
+		if (Input.GetKeyDown (KeyCode.C)) {
+			Hero.singleton.Caffeinate();
+		}
 
-			this.minionsAutoclicked.Add(minion);
-			this.notesAutoclicked.Add(note);
-
-			Hero.singleton.PickUpMinion(minion);
-			Hero.singleton.TurnInNote(note);
+		if (this.autoplay || Input.GetKeyDown (KeyCode.M)) {
+			this.AutoMatch();
 		}
 	}
 
