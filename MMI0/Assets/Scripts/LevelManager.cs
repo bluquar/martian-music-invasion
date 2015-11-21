@@ -55,7 +55,7 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void CompleteLevel() {
-		GameManager.currentLevel++;
+		GameManager.currentLevel = (int)(this.levelNumber + 1);
 		Application.LoadLevel ("LevelSelection");
 	}
 
