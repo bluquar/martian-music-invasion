@@ -19,6 +19,9 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		VersionSetup();
+
+		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
+
 		RemoveUnlockedLevelTiles ();
 	}
 	
@@ -35,15 +38,26 @@ public class LevelSelectionGrid : MonoBehaviour {
 			DisableTilesFor("comicLocks");
 			// disable comic play button
 			playLevelButton = musicPlayButton;
+
+			Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
+			//playLevelButton.transform.position = comicUnlockTiles[GameManager.currentLevel-1].transform.position;
+
 			comicPlayButton.SetActive (false);
 		} else {
 			// disable the tiles from other version
 			unlockTiles = comicUnlockTiles;
 			DisableTilesFor("musicLocks");
 			// disable music play button
-			playLevelButton = musicPlayButton;
+			playLevelButton = comicPlayButton;
+
+			Debug.Log (string.Format ("{0}: comicPlayButton", GameManager.currentLevel));
+			//playLevelButton.transform.position = musicUnlockTiles[GameManager.currentLevel-1].transform.position;
+
 			musicPlayButton.SetActive(false);
 		}
+
+
+
 
 	}
 
