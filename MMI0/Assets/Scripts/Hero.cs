@@ -261,11 +261,11 @@ public class Hero : MonoBehaviour {
 		Debug.Log (string.Format ("Matched? ({0} == {1}) = {2}", noteLetters, minionLetters, (noteLetters == minionLetters)));
 		if (noteLetters == minionLetters) {
 			// Great success! Hooray!! You're learning!
-			this.DestroyMinions ();
 			note.Match ();
+			this.DestroyMinions ();
 		} else {
-			this.SetDownMinions();
 			note.Fail ();
+			this.SetDownMinions();
 		}
 	}
 
