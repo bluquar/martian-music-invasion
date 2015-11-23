@@ -6,6 +6,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// unlockTiles is set equal to the version of the game
 	private GameObject[] unlockTiles;
 	private GameObject playLevelButton;
+	private int[] tutorialLevels;
 
 	// The two arrays dependent on version
 	public GameObject[] musicUnlockTiles;
@@ -19,10 +20,11 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		VersionSetup();
-
-		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
-
 		RemoveUnlockedLevelTiles ();
+		DisableTilesFor ("tutorial");
+
+		// Move the play button when the player returns to the level select screen after completing a level
+		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
 	}
 	
 	// Update is called once per frame
@@ -56,21 +58,24 @@ public class LevelSelectionGrid : MonoBehaviour {
 			musicPlayButton.SetActive(false);
 		}
 
-
-
-
 	}
 
 	private void DisableTilesFor(string version) {
 		if (version == "comicLocks") {
 			// disable all of the music lock tiles 
 			for (int i = 0; i < GameManager.numOfLevels; i++) {
-				comicUnlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
+				comicUnlockTiles [i].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		} else if (version == "musicLocks") {
 			// disable all of the comic lock tiles
 			for (int i = 0; i < GameManager.numOfLevels; i++) {
-				musicUnlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
+				musicUnlockTiles [i].GetComponent<SpriteRenderer> ().enabled = false;
+			}
+		} else if (version == "tutorial") {
+			tutorialLevels = new int[6];
+			tutorialLevels = [1, 4, 7, 10, 13, 16];
+			for (int i = 0; i < tutorialLevels.Length; i++) {
+				unlockTiles[tutorialLevels[i]].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		}
 	}
