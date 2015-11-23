@@ -6,7 +6,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// unlockTiles is set equal to the version of the game
 	private GameObject[] unlockTiles;
 	private GameObject playLevelButton;
-	private int[] tutorialLevels;
+	private int[] tutorialLevels = new int[] {1, 4, 7, 10, 13, 16};
 
 	// The two arrays dependent on version
 	public GameObject[] musicUnlockTiles;
@@ -72,10 +72,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 				musicUnlockTiles [i].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		} else if (version == "tutorial") {
-			tutorialLevels = new int[6];
-			tutorialLevels = [1, 4, 7, 10, 13, 16];
 			for (int i = 0; i < tutorialLevels.Length; i++) {
-				unlockTiles[tutorialLevels[i]].GetComponent<SpriteRenderer> ().enabled = false;
+				unlockTiles[tutorialLevels[i]-1].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		}
 	}
