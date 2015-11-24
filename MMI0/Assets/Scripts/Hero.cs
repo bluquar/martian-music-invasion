@@ -29,7 +29,6 @@ public class Hero : MonoBehaviour {
 
     public void TurnInNote(Note note)
     {
-		Debug.Log ("going to note...");
         this.commandQ.Enqueue(new TurninNoteCommand(note));
     }
 
@@ -42,6 +41,7 @@ public class Hero : MonoBehaviour {
 		public Vector3 start; 
 		public abstract Vector3 finish { get; }
 
+		public abstract void PreComplete (float timeToCompletion, Hero hero);
 		public abstract void complete (Hero hero);
 		public abstract bool stillValid ();
     }
@@ -67,6 +67,8 @@ public class Hero : MonoBehaviour {
 		public override bool stillValid () {
 			return true;
 		}
+
+		public override void PreComplete (float timeToCompletion, Hero hero) { }
 	}
 
 	private class PickupMinionCommand : HeroCommand
@@ -90,6 +92,8 @@ public class Hero : MonoBehaviour {
 		public override bool stillValid () {
 			return this.minion.gameObject != null;
 		}
+
+		public override void PreComplete (float timeToCompletion, Hero hero) { }
 	}
 
 	private class TurninNoteCommand : HeroCommand
@@ -112,6 +116,12 @@ public class Hero : MonoBehaviour {
 
 		public override bool stillValid () {
 			return this.note.gameObject != null;
+		}
+
+		public override void PreComplete (float timeToCompletion, Hero hero) { 
+			if (hero.minionsMatchNote (this.note)) {
+				LevelManager.singleton.PrePlayNote(this.note, timeToCompletion);
+			}
 		}
 	}
 
@@ -189,7 +199,8 @@ public class Hero : MonoBehaviour {
     private float FlightTime(Vector2 start, Vector2 finish)
     {
         float dist = Vector2.Distance(start, finish);
-        return Mathf.Sqrt(dist) / this.speed;
+        float time = Mathf.Sqrt(dist) / this.speed;
+		return Mathf.Max (time, LevelManager.audioDelay);
     }
 
     private void BeginCommand(HeroCommand cmd)
@@ -211,6 +222,8 @@ public class Hero : MonoBehaviour {
         this.currentMoveTime = 0f;
         this.state = HeroState.FLYING;
         this.currentCommand = cmd;
+
+		cmd.PreComplete (this.totalMoveTime, this);
     }
 
 	private static class Constants
@@ -255,11 +268,19 @@ public class Hero : MonoBehaviour {
 		return letters;
 	}
 
+	private bool minionsMatchNote(Note note) {
+		if (this.minionsCarrying.Count != note.toneCount)
+			return false;
+		int i = 0;
+		foreach (char c in note.letters) {
+			if (this.minionsCarrying[i++].letter != c)
+				return false;
+		}
+		return true;
+	}
+
 	public void CompleteTurninNote(Note note) {
-		string noteLetters = note.letter;
-		string minionLetters = this.getMinionLetters ();
-		Debug.Log (string.Format ("Matched? ({0} == {1}) = {2}", noteLetters, minionLetters, (noteLetters == minionLetters)));
-		if (noteLetters == minionLetters) {
+		if (this.minionsMatchNote(note)) {
 			// Great success! Hooray!! You're learning!
 			note.Match ();
 			this.DestroyMinions ();

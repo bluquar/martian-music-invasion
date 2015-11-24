@@ -1,18 +1,32 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Note : MonoBehaviour {
 
-	public string letter;
+	public string[] names;
+
 	public uint number;
+
+	public int toneCount {
+		get {
+			return this.names.Length;
+		}
+	}
+
+	public IEnumerable<char> letters {
+		get {
+			foreach (string n in this.names) {
+				yield return n [0];
+			}
+		}
+	}
 
 	private Hero hero;
 	private LevelManager levelManager;
 
 	public Vector3 position {
 		get {
-			if (this == null)
-				Debug.Log ("blah");
 			return this.transform.position;
 		}
 	}
@@ -47,7 +61,6 @@ public class Note : MonoBehaviour {
 	}
 
 	protected void OnMouseDown() {
-		Debug.Log ("clicked");
 		this.hero.TurnInNote (this);
 	}
 }

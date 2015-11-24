@@ -6,9 +6,8 @@ public class Minion : MonoBehaviour {
 
 	private Hero hero;
 	private BackgroundClick background;
-
-	// // Public Methods // //
-	public string letter;
+	
+	public char letter;
 
 	/* Detach from the hero onto the scene as the parent
 	 */
