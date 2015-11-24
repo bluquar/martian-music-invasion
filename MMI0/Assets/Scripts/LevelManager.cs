@@ -15,17 +15,48 @@ public class LevelManager : MonoBehaviour {
 	private List<Note> notesAutoclicked;
 	private Random random;
 
+	// Source to play clips from
+	private AudioSource audioSource;
+
+	// Individual note AudioClips
+	public AudioClip[] noteClips;
+	public string[] noteClipNames;
+	private Dictionary<string, AudioClip> noteNameToClip;
+
+
 	private static class Constants
 	{
 		public static readonly uint firstChordLevel = 16;
+
+		// The amount of time that it takes an audio clip to load before playing it
+		// probably machine dependent, but fuck it for now
+		// need a better way to avoid this delay...
+		public static readonly float audioDelay = 0.25f;
+	}
+
+	public static float audioDelay {
+		get {
+			return Constants.audioDelay;
+		}
 	}
 
 	public bool ChordsAllowed () {
 		return this.levelNumber >= Constants.firstChordLevel;
 	}
 
+	public void PrePlayNote(Note note, float delay) {
+		foreach (string name in note.names) {
+			this.audioSource.clip = this.noteNameToClip[name];
+			this.audioSource.PlayDelayed(delay - LevelManager.audioDelay);
+		}
+	}
+
 	public void CorrectMatch(Note note) {
 		this.notesRemaining--;
+
+		/*foreach (string name in note.names) {
+			this.audioSource.PlayOneShot (this.noteNameToClip [name]);
+		}*/
 
 		if (this.notesRemaining == 0) {
 			this.CompleteLevel();
@@ -35,7 +66,7 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public bool StillNeedsMinion(Minion m) {
-		string letter = m.letter;
+		char letter = m.letter;
 		foreach (Minion other in this.minions) {
 			if (other == m)
 				continue;
@@ -43,8 +74,9 @@ public class LevelManager : MonoBehaviour {
 				return false;
 		}
 		foreach (Note note in this.notes) {
-			if (note.letter == letter)
-				return true;
+			foreach (char t in note.letters)
+				if (t == letter)	
+					return true;
 		}
 		return false;
 	}
@@ -94,12 +126,20 @@ public class LevelManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		
+		this.audioSource = this.GetComponent<AudioSource> ();
+
+		this.noteNameToClip = new Dictionary<string, AudioClip> ();
+		foreach (AudioClip clip in this.noteClips) {
+			this.noteNameToClip[clip.name] = clip;
+		}
 	}
 
 	private bool autoplay = false;
 
 	private void AutoMatch() {
+		if (this.ChordsAllowed ())
+			return;
+
 		List<Note> notes = new List<Note>();
 		foreach (Note n in this.notes) {
 			if (!this.notesAutoclicked.Contains(n))
@@ -109,8 +149,8 @@ public class LevelManager : MonoBehaviour {
 			return;
 		int i = Random.Range (0, notes.Count);
 		Note note = notes[i];
-		
-		string letter = note.letter;
+	
+		char letter = note.names [0] [0];
 		
 		List<Minion> minions = new List<Minion>();
 		foreach (Minion m in this.minions) {
