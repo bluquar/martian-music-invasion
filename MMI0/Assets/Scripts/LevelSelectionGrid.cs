@@ -38,16 +38,16 @@ public class LevelSelectionGrid : MonoBehaviour {
 		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel].transform.position;
 	
 		// set up audio files
-		this.audioSource = this.GetComponent<AudioSource> ();
-		
-		this.songClipsToSource = new Dictionary<string, AudioSource> ();
-		
-		for(int i = 0; i < songClips.Length; i++) {
-			AudioSource src = this.gameObject.AddComponent<AudioSource>();
-			src.clip = songClips[i];
-			songClips[i].LoadAudioData();
-			this.songClipsToSource[i] = src;
-		}
+//		this.audioSource = this.GetComponent<AudioSource> ();
+//		
+//		this.songClipsToSource = new Dictionary<string, AudioSource> ();
+//		
+//		for(int i = 0; i < songClips.Length; i++) {
+//			AudioSource src = this.gameObject.AddComponent<AudioSource>();
+//			src.clip = songClips[i];
+//			songClips[i].LoadAudioData();
+//			this.songClipsToSource[i] = src;
+//		}
 
 		// For each return to the level selection page, play the unlocked song
 		playUnlockedSongAudio ();
@@ -124,8 +124,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// plays the unlocked song according to the unlocked levels
 	private void playUnlockedSongAudio () {
-		AudioSource src = this.songClipsToSource[name];
-		this.songClipsToSource[name].PlayDelayed();
+//		AudioSource src = this.songClipsToSource[name];
+//		this.songClipsToSource[name].PlayDelayed();
 
 	}
 
