@@ -16,6 +16,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 	public GameObject musicPlayButton;
 	public GameObject comicPlayButton;
 
+	public AudioClip[] songClips;
+
 	public static LevelSelectionGrid singleton;
 
 	protected void Awake () {
@@ -29,8 +31,11 @@ public class LevelSelectionGrid : MonoBehaviour {
 		DisableTilesFor ("tutorial");
 
 		// Move the play button when the player returns to the level select screen after completing a level
-		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
+		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel].transform.position;
 	
+		playUnlockedSongAudio ();
+
+		// When the all levels have been unlocked, transition to outro cutscenes
 		if (GameManager.currentLevel == GameManager.numOfLevels) {
 			Application.LoadLevel("OutroCutscene1");
 		}
@@ -94,11 +99,21 @@ public class LevelSelectionGrid : MonoBehaviour {
 		}
 	}
 
+	// function to load the level play 
 	public void PlayLevel() {
 		playLevelButton.transform.Translate (playLevelButton.transform.position.x + 150, playLevelButton.transform.position.y, playLevelButton.transform.position.z);
 		Application.LoadLevel("Level" + GameManager.currentLevel);
 	}
+
+	// plays the unlocked song according to the unlocked levels
+	private void playUnlockedSongAudio () {
+
+		// songClips [GameManager.currentLevel].Play ();
+	}
+
 }
+
+
 
 
 
