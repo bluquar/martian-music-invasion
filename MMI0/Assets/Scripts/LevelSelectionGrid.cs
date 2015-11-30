@@ -30,6 +30,10 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 		// Move the play button when the player returns to the level select screen after completing a level
 		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
+	
+		if (GameManager.currentLevel == GameManager.numOfLevels) {
+			Application.LoadLevel("OutroCutscene1");
+		}
 	}
 	
 	// Update is called once per frame
