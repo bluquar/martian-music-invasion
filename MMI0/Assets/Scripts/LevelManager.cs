@@ -78,24 +78,12 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public bool StillNeedsMinion(Minion m) {
-		char letter = m.letter;
+		uint needed = 0, remaining = 0;
 
-		int numNeeded = 0;
-		foreach (Note note in this.notes) {
-			foreach (char t in note.letters)
-				if (t == letter)	
-					numNeeded++;
-		}
+		this.numNeeded.TryGetValue (m.letter, out needed);
+		this.numRemaining.TryGetValue (m.letter, out remaining);
 
-		int numRemaining = 0;
-		foreach (Minion other in this.minions) {
-			if (other == m)
-				continue;
-			if (other.letter == letter)
-				return false;
-		}
-
-		return false;
+		return (remaining <= needed);
 	}
 
 	public void DoneWithMinion(Minion m) {
@@ -160,7 +148,7 @@ public class LevelManager : MonoBehaviour {
 		uint charCount;
 		foreach (char c in note.letters) {
 			charCount = 0;
-			this.numNeeded.TryGetValue(c, charCount);
+			this.numNeeded.TryGetValue(c, out charCount);
 			this.numNeeded[c] = charCount + 1;
 		}
 		this.notesRemaining++;
@@ -170,17 +158,22 @@ public class LevelManager : MonoBehaviour {
 
 	public void RegisterMinion(Minion minion) {
 		uint charCount = 0;
-		this.numRemaining.TryGetValue (minion.letter, charCount);
+		this.numRemaining.TryGetValue (minion.letter, out charCount);
 		this.numRemaining [minion.letter] = charCount + 1;
 
 		this.minions.Add (minion);
 	}
 
 	public void DeregisterNote(Note note) {
+		foreach (char c in note.letters) {
+			this.numNeeded[c]--;
+		}
+
 		this.notes.Remove(note);
 	}
 
 	public void DeregisterMinion(Minion minion) {
+		this.numRemaining [minion.letter]--;
 		this.minions.Remove (minion);
 	}
 
@@ -216,9 +209,6 @@ public class LevelManager : MonoBehaviour {
 	private bool autoplay = false;
 
 	private void AutoMatch() {
-		if (this.ChordsAllowed ())
-			return;
-
 		List<Note> notes = new List<Note>();
 		foreach (Note n in this.notes) {
 			if (!this.notesAutoclicked.Contains(n))
@@ -228,24 +218,31 @@ public class LevelManager : MonoBehaviour {
 			return;
 		int i = Random.Range (0, notes.Count);
 		Note note = notes[i];
+
+		List<Minion> toPickUp = new List<Minion> ();
 	
-		char letter = note.names [0] [0];
-		
-		List<Minion> minions = new List<Minion>();
-		foreach (Minion m in this.minions) {
-			if (!this.minionsAutoclicked.Contains(m) && (m.letter == letter))
-				minions.Add(m);
+		foreach (char letter in note.letters) {	
+			List<Minion> minions = new List<Minion>();
+			foreach (Minion m in this.minions) {
+				if (!this.minionsAutoclicked.Contains(m) 
+				    && !toPickUp.Contains(m)
+				    && (m.letter == letter))
+					minions.Add(m);
+			}
+			if (minions.Count == 0)
+				return;
+			
+			i = Random.Range (0, minions.Count);
+			Minion minion = minions[i];
+			toPickUp.Add(minion);
 		}
-		if (minions.Count == 0)
-			return;
-		
-		i = Random.Range (0, minions.Count);
-		Minion minion = minions[i];
-		
-		this.minionsAutoclicked.Add(minion);
+
+		foreach (Minion m in toPickUp) {
+			Hero.singleton.PickUpMinion(m);
+			this.minionsAutoclicked.Add(m);
+		}
+
 		this.notesAutoclicked.Add(note);
-		
-		Hero.singleton.PickUpMinion(minion);
 		Hero.singleton.TurnInNote(note);
 	}
 
