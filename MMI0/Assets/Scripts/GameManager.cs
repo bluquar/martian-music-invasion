@@ -27,10 +27,17 @@ public class GameManager : MonoBehaviour {
 	}
 
 	private IEnumerator ShrinkMeasure (GameObject measure) {
-		yield return new WaitForSeconds (1f);
+		//yield return new WaitForSeconds (1f);
 		measure.transform.parent = this.gameObject.transform;
 		measure.transform.position = GameManager.measureTransform.position;
-		measure.transform.localScale = GameManager.measureTransform.localScale;
+		measure.transform.localScale = GameManager.measureTransform.localScale * (5f / 4.25f);
+	
+
+		LevelSelectionGrid grid = LevelSelectionGrid.singleton;
+		GameObject measureTile = grid.musicUnlockTiles [currentLevel - 2];
+
 		yield return new WaitForSeconds (1f);
+
+		measure.transform.position = measureTile.transform.position;
 	}
 }

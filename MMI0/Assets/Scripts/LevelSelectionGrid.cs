@@ -16,6 +16,11 @@ public class LevelSelectionGrid : MonoBehaviour {
 	public GameObject musicPlayButton;
 	public GameObject comicPlayButton;
 
+	public static LevelSelectionGrid singleton;
+
+	protected void Awake () {
+		LevelSelectionGrid.singleton = this;
+	}
 
 	// Use this for initialization
 	void Start () {
