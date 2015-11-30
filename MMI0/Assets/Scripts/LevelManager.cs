@@ -29,6 +29,9 @@ public class LevelManager : MonoBehaviour {
 	// Final measure clip
 	public AudioClip measureClip;
 
+	// Background music clip
+	public AudioClip buildingsBackground;
+
 
 	private static class Constants
 	{
@@ -204,6 +207,11 @@ public class LevelManager : MonoBehaviour {
 			clip.LoadAudioData();
 			this.noteNameToSource[clip.name] = src;
 		}
+
+
+		AudioClip backgroundClip = buildingsBackground;
+		this.audioSource.clip = backgroundClip;
+		this.audioSource.Play ();
 	}
 
 	private bool autoplay = false;
