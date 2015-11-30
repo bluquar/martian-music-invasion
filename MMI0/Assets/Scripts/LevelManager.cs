@@ -135,6 +135,8 @@ public class LevelManager : MonoBehaviour {
 
 		yield return new WaitForSeconds (clip.length + 0.2f);
 
+		DontDestroyOnLoad (this.measureTransform.gameObject);
+		GameManager.SetMeasure (this.measureTransform.gameObject, this.measureTransform);
 		Application.LoadLevel ("LevelSelection");
 	}
 
