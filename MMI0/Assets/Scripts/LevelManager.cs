@@ -40,6 +40,8 @@ public class LevelManager : MonoBehaviour {
 		public static readonly float audioDelay = 0.2f;
 
 		public static readonly float measureCenterTime = 1f;
+
+		public static readonly Color32 semiTransparent = new Color32(0xFF, 0xFF, 0xFF, 0x80);
 	}
 
 	public static float audioDelay {
@@ -60,10 +62,6 @@ public class LevelManager : MonoBehaviour {
 		foreach (string name in note.names) {
 			AudioSource src = this.noteNameToSource[name];
 			this.noteNameToSource[name].PlayDelayed(delay - Constants.audioDelay);
-			//AudioClip noteClip = this.noteNameToClip [name];
-			//this.audioSource.clip = noteClip;
-			//this.audioSource.volume = 0.3f;
-			//this.audioSource.PlayDelayed (delay - LevelManager.audioDelay);
 			maxClipTime = Mathf.Max (maxClipTime, src.clip.length);
 		}
 
@@ -112,7 +110,7 @@ public class LevelManager : MonoBehaviour {
 			if (rend.gameObject.transform == this.measureTransform ||
 			    rend.gameObject.transform.parent == this.measureTransform)
 				continue; // Skip notes and measure
-			rend.color = new Color32(0xFF, 0xFF, 0xFF, 0x80);
+			rend.color = Constants.semiTransparent;
 		}
 
 		float t;
