@@ -15,6 +15,7 @@ public class CutsceneControl : MonoBehaviour {
 
 	public void ChangeScene(string levelName) 
 	{
+		CutsceneAudio.ChangeScene (levelName);
 		Application.LoadLevel(levelName);
 	}	
 }
