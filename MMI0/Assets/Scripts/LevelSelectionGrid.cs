@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class LevelSelectionGrid : MonoBehaviour {
 
@@ -16,7 +17,10 @@ public class LevelSelectionGrid : MonoBehaviour {
 	public GameObject musicPlayButton;
 	public GameObject comicPlayButton;
 
+	// Audio
+	private AudioSource audioSource;
 	public AudioClip[] songClips;
+	private Dictionary<string, AudioSource> songClipsToSource;
 
 	public static LevelSelectionGrid singleton;
 
@@ -33,6 +37,19 @@ public class LevelSelectionGrid : MonoBehaviour {
 		// Move the play button when the player returns to the level select screen after completing a level
 		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel].transform.position;
 	
+		// set up audio files
+		this.audioSource = this.GetComponent<AudioSource> ();
+		
+		this.songClipsToSource = new Dictionary<string, AudioSource> ();
+		
+		for(int i = 0; i < songClips.Length; i++) {
+			AudioSource src = this.gameObject.AddComponent<AudioSource>();
+			src.clip = songClips[i];
+			songClips[i].LoadAudioData();
+			this.songClipsToSource[i] = src;
+		}
+
+		// For each return to the level selection page, play the unlocked song
 		playUnlockedSongAudio ();
 
 		// When the all levels have been unlocked, transition to outro cutscenes
@@ -107,8 +124,9 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// plays the unlocked song according to the unlocked levels
 	private void playUnlockedSongAudio () {
+		AudioSource src = this.songClipsToSource[name];
+		this.songClipsToSource[name].PlayDelayed();
 
-		// songClips [GameManager.currentLevel].Play ();
 	}
 
 }
