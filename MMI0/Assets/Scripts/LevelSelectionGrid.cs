@@ -20,7 +20,6 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Audio
 	private AudioSource audioSource;
 	public AudioClip[] songClips;
-	private Dictionary<string, AudioSource> songClipsToSource;
 
 	public static LevelSelectionGrid singleton;
 
@@ -35,27 +34,13 @@ public class LevelSelectionGrid : MonoBehaviour {
 		DisableTilesFor ("tutorial");
 
 		// Move the play button when the player returns to the level select screen after completing a level
-		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel].transform.position;
+		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel-1].transform.position;
 	
 		// set up audio files
-//		this.audioSource = this.GetComponent<AudioSource> ();
-//		
-//		this.songClipsToSource = new Dictionary<string, AudioSource> ();
-//		
-//		for(int i = 0; i < songClips.Length; i++) {
-//			AudioSource src = this.gameObject.AddComponent<AudioSource>();
-//			src.clip = songClips[i];
-//			songClips[i].LoadAudioData();
-//			this.songClipsToSource[i] = src;
-//		}
+		this.audioSource = this.GetComponent<AudioSource> ();
 
 		// For each return to the level selection page, play the unlocked song
-		playUnlockedSongAudio ();
-
-		// When the all levels have been unlocked, transition to outro cutscenes
-		if (GameManager.currentLevel == GameManager.numOfLevels) {
-			Application.LoadLevel("OutroCutscene1");
-		}
+		StartCoroutine(playUnlockedSongAudio() );
 	}
 	
 	// Update is called once per frame
@@ -111,7 +96,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Function to disable all of the unlocked levels
 	private void RemoveUnlockedLevelTiles() {
-		for (int i = 0; i < GameManager.currentLevel; i++) {
+		for (int i = 0; i < GameManager.currentLevel-1; i++) {
 			unlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
 		}
 	}
@@ -123,10 +108,16 @@ public class LevelSelectionGrid : MonoBehaviour {
 	}
 
 	// plays the unlocked song according to the unlocked levels
-	private void playUnlockedSongAudio () {
-//		AudioSource src = this.songClipsToSource[name];
-//		this.songClipsToSource[name].PlayDelayed();
+	private IEnumerator playUnlockedSongAudio () {
+		AudioClip levelClip = songClips[GameManager.currentLevel-1];
+		this.audioSource.clip = levelClip;
+		this.audioSource.Play ();
+		yield return new WaitForSeconds(levelClip.length);
 
+		// When the all levels have been unlocked, transition to outro cutscenes
+		if (GameManager.currentLevel == GameManager.numOfLevels) {
+			Application.LoadLevel("OutroCutscene1");
+		}
 	}
 
 }
