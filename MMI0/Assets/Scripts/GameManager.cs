@@ -9,7 +9,9 @@ public class GameManager : MonoBehaviour {
 
 	void Awake() {
 		// Do not destory this GameManager instance when changing scenes in order to store data
-		DontDestroyOnLoad (this.gameObject); 
+		DontDestroyOnLoad (this.gameObject);
+
+
 	}
 
 }

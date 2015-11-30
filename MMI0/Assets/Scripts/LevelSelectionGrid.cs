@@ -80,7 +80,6 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Function to disable all of the unlocked levels
 	private void RemoveUnlockedLevelTiles() {
-		print (GameManager.currentLevel);
 		for (int i = 0; i < GameManager.currentLevel; i++) {
 			unlockTiles[i].GetComponent<SpriteRenderer>().enabled = false;
 		}

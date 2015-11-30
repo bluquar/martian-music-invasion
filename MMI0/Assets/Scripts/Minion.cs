@@ -17,6 +17,10 @@ public class Minion : MonoBehaviour {
 		this.SetScale (/*reversed: */ false);
 		this.EnableGravity ();
 		this.beingCarried = false;
+		this.transform.position = new Vector3 (
+			this.transform.position.x, this.transform.position.y,
+			this.initialPosition.z
+		);
 	}
 	
 	/* Attach to the hero

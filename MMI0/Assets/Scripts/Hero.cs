@@ -23,7 +23,7 @@ public class Hero : MonoBehaviour {
 		if (this.minionsCarrying.Contains (minion)) {
 			this.SetDownMinions ();
 		} else {
-			this.commandQ.Enqueue (new PickupMinionCommand (minion));
+			this.commandQ.Enqueue (new PickupMinionCommand (minion, this));
 		}
     }
 
@@ -75,14 +75,16 @@ public class Hero : MonoBehaviour {
 	{
 		public override Vector3 finish {
 			get {
-				return this.minion.transform.position;
+				return this.minion.transform.position - this.hero.minionStackHeight;;
 			}
 		}
 
 		private Minion minion;
+		private Hero hero;
 
-		public PickupMinionCommand(Minion minion) {
+		public PickupMinionCommand(Minion minion, Hero hero) {
 			this.minion = minion;
+			this.hero = hero;
 		}
 
 		public override void complete (Hero hero) {
@@ -175,6 +177,12 @@ public class Hero : MonoBehaviour {
 		}
 	}
 
+	public Vector3 minionStackHeight {
+		get {
+			return Vector3.up * (Constants.MinionSpacing * this.minionsCarrying.Count);
+		}
+	}
+
 	protected void Awake() {
 		Hero.singleton = this;
 	}
@@ -229,6 +237,7 @@ public class Hero : MonoBehaviour {
 	private static class Constants
 	{
 		public static readonly Vector3 NoScale = new Vector3 (1, 1, 1);
+		public static readonly float MinionSpacing = 0.6f;
 	}
 	
 	private void SetDownMinions() {
@@ -251,13 +260,21 @@ public class Hero : MonoBehaviour {
 		}
 		this.minionsCarrying.Clear ();
 	}
-	
+
+	private void PickupMinion(Minion minion) {
+		minion.AttachToHero(this);
+
+		//minion.transform.position += this.minionStackHeight;
+		minion.transform.position += Vector3.back * this.minionsCarrying.Count;
+
+		this.minionsCarrying.Add (minion);
+	}
+
 	public void CompletePickupMinion(Minion minion) {
 		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
 			this.SetDownMinions ();
 
-		this.minionsCarrying.Add (minion);
-		minion.AttachToHero(this);
+		this.PickupMinion (minion);
 	}
 
 	private string getMinionLetters() {
@@ -294,9 +311,9 @@ public class Hero : MonoBehaviour {
 
 	}
 
-	public void Caffeinate() {
-		this.speed *= 1.2f;
-		this.turningSpeed *= 1.2f;
+	public void Caffeinate(float speedDelta=1.2f) {
+		this.speed *= speedDelta;
+		this.turningSpeed *= speedDelta;
 	}
 
     private void FinishCommand()

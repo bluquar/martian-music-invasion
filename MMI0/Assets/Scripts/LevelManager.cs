@@ -15,13 +15,19 @@ public class LevelManager : MonoBehaviour {
 	private List<Note> notesAutoclicked;
 	private Random random;
 
+	private Transform measureTransform;
+
+	private Dictionary<char, uint> numNeeded, numRemaining;
+
 	// Source to play clips from
 	private AudioSource audioSource;
 
 	// Individual note AudioClips
 	public AudioClip[] noteClips;
-	public string[] noteClipNames;
-	private Dictionary<string, AudioClip> noteNameToClip;
+	private Dictionary<string, AudioSource> noteNameToSource;
+
+	// Final measure clip
+	public AudioClip measureClip;
 
 
 	private static class Constants
@@ -31,13 +37,13 @@ public class LevelManager : MonoBehaviour {
 		// The amount of time that it takes an audio clip to load before playing it
 		// probably machine dependent, but fuck it for now
 		// need a better way to avoid this delay...
-		public static readonly float audioDelay = 0.25f;
+		public static readonly float audioDelay = 0.2f;
+
+		public static readonly float measureCenterTime = 1f;
 	}
 
 	public static float audioDelay {
-		get {
-			return Constants.audioDelay;
-		}
+		get { return Constants.audioDelay; }
 	}
 
 	public bool ChordsAllowed () {
@@ -45,39 +51,50 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void PrePlayNote(Note note, float delay) {
-		foreach (string name in note.names) {
-			this.audioSource.clip = this.noteNameToClip[name];
-			this.audioSource.PlayDelayed(delay - LevelManager.audioDelay);
-		}
+		StartCoroutine (NoteMatchDelayed (note, delay));
 	}
 
-	public void CorrectMatch(Note note) {
-		this.notesRemaining--;
-
-		/*foreach (string name in note.names) {
-			this.audioSource.PlayOneShot (this.noteNameToClip [name]);
-		}*/
-
-		if (this.notesRemaining == 0) {
-			this.CompleteLevel();
+	private IEnumerator NoteMatchDelayed(Note note, float delay) {
+		// Set up the playing of the sounds
+		float maxClipTime = 0f;
+		foreach (string name in note.names) {
+			AudioSource src = this.noteNameToSource[name];
+			this.noteNameToSource[name].PlayDelayed(delay - Constants.audioDelay);
+			//AudioClip noteClip = this.noteNameToClip [name];
+			//this.audioSource.clip = noteClip;
+			//this.audioSource.volume = 0.3f;
+			//this.audioSource.PlayDelayed (delay - LevelManager.audioDelay);
+			maxClipTime = Mathf.Max (maxClipTime, src.clip.length);
 		}
 
-		// TODO
+		// Wait for the note to finish playing
+		yield return new WaitForSeconds (delay);
+
+		// Correct Match
+		this.notesRemaining--;
+
+		if (this.notesRemaining == 0)
+			this.CompleteLevel ();
 	}
 
 	public bool StillNeedsMinion(Minion m) {
 		char letter = m.letter;
+
+		int numNeeded = 0;
+		foreach (Note note in this.notes) {
+			foreach (char t in note.letters)
+				if (t == letter)	
+					numNeeded++;
+		}
+
+		int numRemaining = 0;
 		foreach (Minion other in this.minions) {
 			if (other == m)
 				continue;
 			if (other.letter == letter)
 				return false;
 		}
-		foreach (Note note in this.notes) {
-			foreach (char t in note.letters)
-				if (t == letter)	
-					return true;
-		}
+
 		return false;
 	}
 
@@ -87,7 +104,51 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void CompleteLevel() {
+		StartCoroutine (CompleteLevelAsync ());
+	}
+
+	private IEnumerator CompleteLevelAsync() {
 		GameManager.currentLevel = (int)(this.levelNumber + 1);
+
+		// Move the measure to the center of the screen
+		float moveTime = LevelManager.Constants.measureCenterTime;
+		float currentTime = 0f;
+
+		Vector3 measureStart = this.measureTransform.position;
+		Vector3 measureEnd = new Vector3 (0, 0, -9);
+
+		Vector3 measureScaleStart = this.measureTransform.localScale;
+		Vector3 measureScaleEnd = measureScaleStart * 1.5f;
+
+		foreach (SpriteRenderer rend in this.gameObject.GetComponentsInChildren<SpriteRenderer>()) {
+			if (rend.gameObject.transform == this.measureTransform ||
+			    rend.gameObject.transform.parent == this.measureTransform)
+				continue; // Skip notes and measure
+			rend.color = new Color32(0xFF, 0xFF, 0xFF, 0x80);
+		}
+
+		float t;
+
+		while (currentTime <= moveTime) {
+			t = currentTime / moveTime;
+			t = t * t * t * (t * (6f * t - 15f) + 10f);
+
+			this.measureTransform.position = Vector3.Lerp (measureStart, measureEnd, t);
+			this.measureTransform.localScale = Vector3.Lerp (measureScaleStart, measureScaleEnd, t);
+
+			yield return new WaitForEndOfFrame();
+			currentTime += Time.deltaTime;
+		}
+		this.measureTransform.position = measureEnd;
+
+		// Play the final measure
+		AudioClip clip = this.measureClip;
+		this.audioSource.clip = clip;
+		this.audioSource.volume = 1f;
+		this.audioSource.Play ();
+
+		yield return new WaitForSeconds (clip.length + 0.2f);
+
 		Application.LoadLevel ("LevelSelection");
 	}
 
@@ -96,11 +157,22 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void RegisterNote(Note note) {
+		uint charCount;
+		foreach (char c in note.letters) {
+			charCount = 0;
+			this.numNeeded.TryGetValue(c, charCount);
+			this.numNeeded[c] = charCount + 1;
+		}
 		this.notesRemaining++;
 		this.notes.Add (note);
+		this.measureTransform = note.transform.parent;
 	}
 
 	public void RegisterMinion(Minion minion) {
+		uint charCount = 0;
+		this.numRemaining.TryGetValue (minion.letter, charCount);
+		this.numRemaining [minion.letter] = charCount + 1;
+
 		this.minions.Add (minion);
 	}
 
@@ -122,15 +194,22 @@ public class LevelManager : MonoBehaviour {
 		this.notesAutoclicked = new List<Note> ();
 		this.minions = new List<Minion> ();
 		this.minionsAutoclicked = new List<Minion> ();
+
+		this.numNeeded = new Dictionary<char, uint> ();
+		this.numRemaining = new Dictionary<char, uint> ();
 	}
 
 	// Use this for initialization
 	void Start () {
 		this.audioSource = this.GetComponent<AudioSource> ();
 
-		this.noteNameToClip = new Dictionary<string, AudioClip> ();
+		this.noteNameToSource = new Dictionary<string, AudioSource> ();
+
 		foreach (AudioClip clip in this.noteClips) {
-			this.noteNameToClip[clip.name] = clip;
+			AudioSource src = this.gameObject.AddComponent<AudioSource>();
+			src.clip = clip;
+			clip.LoadAudioData();
+			this.noteNameToSource[clip.name] = src;
 		}
 	}
 
@@ -177,8 +256,7 @@ public class LevelManager : MonoBehaviour {
 		} 
 
 		if (Input.GetKeyDown (KeyCode.Return)) {
-			for (int i = 0; i < 12; i++)
-				Hero.singleton.Caffeinate();
+			Hero.singleton.Caffeinate(5f);
 			this.autoplay = true;
 		}
 

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public class Note : MonoBehaviour {
 
-	public string[] names;
+	public string[] names = {"A1"};
 
 	public uint number;
 
@@ -32,7 +32,6 @@ public class Note : MonoBehaviour {
 	}
 
 	public void Match() {
-		this.levelManager.CorrectMatch (this);
 		this.levelManager.DeregisterNote (this);
 		Destroy (this.gameObject);
 	}
