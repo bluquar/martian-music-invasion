@@ -34,8 +34,10 @@ public class LevelSelectionGrid : MonoBehaviour {
 		DisableTilesFor ("tutorial");
 
 		// Move the play button when the player returns to the level select screen after completing a level
-		playLevelButton.transform.position = unlockTiles [GameManager.currentLevel-1].transform.position;
-	
+		if (GameManager.currentLevel != GameManager.numOfLevels + 1) {
+			playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
+		} 
+
 		// set up audio files
 		this.audioSource = this.GetComponent<AudioSource> ();
 
@@ -115,7 +117,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 		yield return new WaitForSeconds(levelClip.length);
 
 		// When the all levels have been unlocked, transition to outro cutscenes
-		if (GameManager.currentLevel == GameManager.numOfLevels) {
+		if (GameManager.currentLevel == GameManager.numOfLevels + 1) {
 			Application.LoadLevel("OutroCutscene1");
 		}
 	}
