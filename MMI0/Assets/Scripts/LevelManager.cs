@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -8,8 +9,10 @@ public class LevelManager : MonoBehaviour {
 	public uint levelNumber;
 	public uint maxLives = 3;
 	public GameObject[] lifePrefabs;
+	public GameObject allLivesLostPrefab;
 
 	private GameObject[] lifeObjects;
+
 
 	private uint livesRemaining;
 
@@ -125,6 +128,14 @@ public class LevelManager : MonoBehaviour {
 		StartCoroutine (CompleteLevelAsync ());
 	}
 
+	private void DimChildren(GameObject obj, GameObject except=null) {
+		foreach (SpriteRenderer rend in obj.GetComponentsInChildren<SpriteRenderer>()) {
+			if (rend.gameObject == except)
+				continue;
+			rend.color = Constants.semiTransparent;
+		}
+	}
+	
 	private IEnumerator CompleteLevelAsync() {
 		GameManager.currentLevel = (int)(this.levelNumber + 1);
 
@@ -138,12 +149,7 @@ public class LevelManager : MonoBehaviour {
 		Vector3 measureScaleStart = this.measureTransform.localScale;
 		Vector3 measureScaleEnd = measureScaleStart * 1.5f;
 
-		foreach (SpriteRenderer rend in this.gameObject.GetComponentsInChildren<SpriteRenderer>()) {
-			if (rend.gameObject.transform == this.measureTransform ||
-			    rend.gameObject.transform.parent == this.measureTransform)
-				continue; // Skip notes and measure
-			rend.color = Constants.semiTransparent;
-		}
+		this.DimChildren (this.gameObject);
 
 		float t;
 
@@ -217,6 +223,17 @@ public class LevelManager : MonoBehaviour {
 
 		GameObject lifeLost = this.lifeObjects [this.livesRemaining];
 		Destroy (lifeLost);
+
+		if (this.livesRemaining <= 0) {
+			this.DimChildren (this.gameObject);
+			this.DimChildren (this.measureTransform.gameObject);
+			GameObject noLives = Instantiate<GameObject>(this.allLivesLostPrefab);
+			noLives.GetComponentInChildren<Button>().onClick.AddListener(this.Retry);
+		}
+	}
+
+	public void Retry () {
+		Application.LoadLevel (Application.loadedLevelName);
 	}
 
 	private uint notesRemaining;
