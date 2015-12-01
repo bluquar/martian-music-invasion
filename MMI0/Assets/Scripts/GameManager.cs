@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour {
 		GameManager.measure = measure;
 		GameManager.measureTransform = transform;
 	}
-
+	
 	void Awake() {
 		// Do not destory this GameManager instance when changing scenes in order to store data
 		DontDestroyOnLoad (this.gameObject);
