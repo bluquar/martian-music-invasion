@@ -6,6 +6,12 @@ using System.Collections.Generic;
 public class LevelManager : MonoBehaviour {
 	
 	public uint levelNumber;
+	public uint maxLives = 3;
+	public GameObject[] lifePrefabs;
+
+	private GameObject[] lifeObjects;
+
+	private uint livesRemaining;
 
 	public static LevelManager singleton;
 
@@ -16,6 +22,12 @@ public class LevelManager : MonoBehaviour {
 	private Random random;
 
 	private Transform measureTransform;
+	
+	public bool isTutorialLevel {
+		get {
+			return this.levelNumber % 3 == 1;
+		}
+	}
 
 	private Dictionary<char, uint> numNeeded, numRemaining;
 
@@ -29,9 +41,11 @@ public class LevelManager : MonoBehaviour {
 	// Final measure clip
 	public AudioClip measureClip;
 
+	// Fail note clip
+	public AudioClip noteFailClip;
+
 	// Background music clip
 	public AudioClip buildingsBackground;
-
 
 	private static class Constants
 	{
@@ -45,6 +59,8 @@ public class LevelManager : MonoBehaviour {
 		public static readonly float measureCenterTime = 1f;
 
 		public static readonly Color32 semiTransparent = new Color32(0xFF, 0xFF, 0xFF, 0x80);
+
+		public static readonly float lifeDistance = 0.2f;
 	}
 
 	public static float audioDelay {
@@ -57,6 +73,10 @@ public class LevelManager : MonoBehaviour {
 
 	public void PrePlayNote(Note note, float delay) {
 		StartCoroutine (NoteMatchDelayed (note, delay));
+	}
+
+	public void PreFailNote(Note note, float delay) {
+		StartCoroutine (NoteFailDelayed (delay));
 	}
 
 	private IEnumerator NoteMatchDelayed(Note note, float delay) {
@@ -76,6 +96,15 @@ public class LevelManager : MonoBehaviour {
 
 		if (this.notesRemaining == 0)
 			this.CompleteLevel ();
+	}
+
+	private IEnumerator NoteFailDelayed(float delay) {
+		this.audioSource.clip = this.noteFailClip;
+		this.audioSource.PlayDelayed (delay - Constants.audioDelay);
+
+		yield return new WaitForSeconds (delay);
+
+		this.LoseLife ();
 	}
 
 	public bool StillNeedsMinion(Minion m) {
@@ -143,9 +172,6 @@ public class LevelManager : MonoBehaviour {
 		Application.LoadLevel ("LevelSelection");
 	}
 
-	public void IncorrectMatch(Note note) {
-		// TODO
-	}
 
 	public void RegisterNote(Note note) {
 		uint charCount;
@@ -180,6 +206,19 @@ public class LevelManager : MonoBehaviour {
 		this.minions.Remove (minion);
 	}
 
+	public void HelpRequested () {
+		if (!this.isTutorialLevel) {
+			this.LoseLife();
+		}
+	}
+
+	private void LoseLife() {
+		this.livesRemaining--;
+
+		GameObject lifeLost = this.lifeObjects [this.livesRemaining];
+		Destroy (lifeLost);
+	}
+
 	private uint notesRemaining;
 
 	void Awake () {
@@ -208,10 +247,27 @@ public class LevelManager : MonoBehaviour {
 			this.noteNameToSource[clip.name] = src;
 		}
 
+		this.InitLives ();
 
 		AudioClip backgroundClip = buildingsBackground;
 		this.audioSource.clip = backgroundClip;
 		this.audioSource.Play ();
+	}
+
+	private void InitLives() {
+		Transform lives = this.transform.FindChild ("Lives");
+
+		GameObject[] lifePrefabs = this.lifePrefabs;
+
+		this.livesRemaining = this.maxLives;
+		this.lifeObjects = new GameObject[this.maxLives];
+
+		for (uint i = 0; i < this.maxLives; i++) {
+			GameObject lifePrefab = lifePrefabs[i % lifePrefabs.Length];
+			GameObject life = Instantiate<GameObject>(lifePrefab);
+			life.transform.position += (i / lifePrefabs.Length) * Constants.lifeDistance * Vector3.up;
+			this.lifeObjects[i] = life;
+		}
 	}
 
 	private bool autoplay = false;

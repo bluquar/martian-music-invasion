@@ -122,7 +122,9 @@ public class Hero : MonoBehaviour {
 
 		public override void PreComplete (float timeToCompletion, Hero hero) { 
 			if (hero.minionsMatchNote (this.note)) {
-				LevelManager.singleton.PrePlayNote(this.note, timeToCompletion);
+				LevelManager.singleton.PrePlayNote (this.note, timeToCompletion);
+			} else {
+				LevelManager.singleton.PreFailNote (this.note, timeToCompletion);
 			}
 		}
 	}
@@ -179,7 +181,10 @@ public class Hero : MonoBehaviour {
 
 	public Vector3 minionStackHeight {
 		get {
-			return Vector3.up * (Constants.MinionSpacing * this.minionsCarrying.Count);
+			if (this.levelManager.ChordsAllowed())
+				return Vector3.up * (Constants.MinionSpacing * this.minionsCarrying.Count);
+			else
+				return Vector3.zero;
 		}
 	}
 

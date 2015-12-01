@@ -27,6 +27,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 		LevelSelectionGrid.singleton = this;
 	}
 
+
 	// Use this for initialization
 	void Start () {
 		VersionSetup();
