@@ -21,6 +21,11 @@ public class LevelSelectionGrid : MonoBehaviour {
 	private AudioSource audioSource;
 	public AudioClip[] songClips;
 
+	// First time on Level Selection Page dialogue box items
+	public GameObject outlinedBox;
+	public GameObject startPlayingButton;
+	public GameObject DialogueText;
+
 	public static LevelSelectionGrid singleton;
 
 	protected void Awake () {
@@ -33,6 +38,11 @@ public class LevelSelectionGrid : MonoBehaviour {
 		VersionSetup();
 		RemoveUnlockedLevelTiles ();
 		DisableTilesFor ("tutorial");
+
+		// Dialogue box set up for first time on level selection page
+		if (GameManager.currentLevel != 1) {
+			DisableDialogueBoxItems();
+		}
 
 		// Move the play button when the player returns to the level select screen after completing a level
 		if (GameManager.currentLevel != GameManager.numOfLevels + 1) {
@@ -123,6 +133,13 @@ public class LevelSelectionGrid : MonoBehaviour {
 		if (GameManager.currentLevel == GameManager.numOfLevels + 1) {
 			Application.LoadLevel("OutroCutscene1");
 		}
+	}
+
+	// Disables the dialogue box items after button clicked or on all levels beyond level 1
+	public void DisableDialogueBoxItems() {
+		outlinedBox.GetComponent<SpriteRenderer> ().enabled = false;
+		DialogueText.gameObject.SetActive(false);
+		startPlayingButton.gameObject.SetActive(false);
 	}
 
 }
