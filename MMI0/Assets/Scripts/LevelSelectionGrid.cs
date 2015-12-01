@@ -36,7 +36,9 @@ public class LevelSelectionGrid : MonoBehaviour {
 		// Move the play button when the player returns to the level select screen after completing a level
 		if (GameManager.currentLevel != GameManager.numOfLevels + 1) {
 			playLevelButton.transform.position = unlockTiles [GameManager.currentLevel - 1].transform.position;
-		} 
+		} else if (GameManager.currentLevel == GameManager.numOfLevels + 1) {
+			playLevelButton.gameObject.SetActive(false);
+		}
 
 		// set up audio files
 		this.audioSource = this.GetComponent<AudioSource> ();
