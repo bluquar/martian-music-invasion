@@ -35,7 +35,8 @@ public class LevelManager : MonoBehaviour {
 	private Dictionary<char, uint> numNeeded, numRemaining;
 
 	// Source to play clips from
-	private AudioSource audioSource;
+	private AudioSource backgroundAudioSource;
+	private AudioSource zapAudioSource;
 
 	// Individual note AudioClips
 	public AudioClip[] noteClips;
@@ -102,8 +103,7 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	private IEnumerator NoteFailDelayed(float delay) {
-		this.audioSource.clip = this.noteFailClip;
-		this.audioSource.PlayDelayed (delay - Constants.audioDelay);
+		this.zapAudioSource.PlayDelayed (delay - Constants.audioDelay);
 
 		yield return new WaitForSeconds (delay);
 
@@ -125,6 +125,10 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void CompleteLevel() {
+		if (this.livesRemaining <= 0) {
+			// nice try...
+			return;
+		}
 		StartCoroutine (CompleteLevelAsync ());
 	}
 
@@ -167,9 +171,9 @@ public class LevelManager : MonoBehaviour {
 
 		// Play the final measure
 		AudioClip clip = this.measureClip;
-		this.audioSource.clip = clip;
-		this.audioSource.volume = 1f;
-		this.audioSource.Play ();
+		this.backgroundAudioSource.clip = clip;
+		this.backgroundAudioSource.volume = 1f;
+		this.backgroundAudioSource.Play ();
 
 		yield return new WaitForSeconds (clip.length + 0.2f);
 
@@ -222,7 +226,7 @@ public class LevelManager : MonoBehaviour {
 		this.livesRemaining--;
 
 		GameObject lifeLost = this.lifeObjects [this.livesRemaining];
-		Destroy (lifeLost);
+		StartCoroutine (this.DisappearLife (lifeLost));
 
 		if (this.livesRemaining <= 0) {
 			this.DimChildren (this.gameObject);
@@ -230,6 +234,32 @@ public class LevelManager : MonoBehaviour {
 			GameObject noLives = Instantiate<GameObject>(this.allLivesLostPrefab);
 			noLives.GetComponentInChildren<Button>().onClick.AddListener(this.Retry);
 		}
+	}
+
+	private IEnumerator DisappearLife(GameObject life) {
+		float destTime = 2.5f;
+		float currentTime = 0f;
+
+		Vector3 destScale = new Vector3 (3f, 3f, 1f);
+		Vector3 initialScale = life.transform.localScale;
+
+		SpriteRenderer rend = life.GetComponent<SpriteRenderer> ();
+		Color32 color;
+
+		while (currentTime < destTime) {
+			float t = (currentTime / destTime);
+			t = 1 - (t-1) * (t-1);
+			life.transform.localScale = Vector3.Lerp(initialScale, destScale, t);
+
+			float transp = 255f * (1 - t);
+			color = new Color32(0xFF,0xFF,0xFF, (byte)(uint)transp);
+			rend.color = color;
+
+			yield return new WaitForEndOfFrame();
+			currentTime += Time.deltaTime;
+		}
+
+		Destroy (life);
 	}
 
 	public void Retry () {
@@ -253,7 +283,10 @@ public class LevelManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		this.audioSource = this.GetComponent<AudioSource> ();
+		this.backgroundAudioSource = this.GetComponent<AudioSource> ();
+
+		this.zapAudioSource = this.gameObject.AddComponent<AudioSource> ();
+		this.zapAudioSource.clip = this.noteFailClip;
 
 		this.noteNameToSource = new Dictionary<string, AudioSource> ();
 
@@ -267,8 +300,8 @@ public class LevelManager : MonoBehaviour {
 		this.InitLives ();
 
 		AudioClip backgroundClip = buildingsBackground;
-		this.audioSource.clip = backgroundClip;
-		this.audioSource.Play ();
+		this.backgroundAudioSource.clip = backgroundClip;
+		this.backgroundAudioSource.Play ();
 	}
 
 	private void InitLives() {
@@ -282,6 +315,7 @@ public class LevelManager : MonoBehaviour {
 		for (uint i = 0; i < this.maxLives; i++) {
 			GameObject lifePrefab = lifePrefabs[i % lifePrefabs.Length];
 			GameObject life = Instantiate<GameObject>(lifePrefab);
+			life.transform.parent = this.transform;
 			life.transform.position += (i / lifePrefabs.Length) * Constants.lifeDistance * Vector3.up;
 			this.lifeObjects[i] = life;
 		}

@@ -48,6 +48,7 @@ public class Minion : MonoBehaviour {
 	// // Private Members // //
 	private Collider2D backgroundCollider; // The 2D Collider of the Background sprite
 	private Vector3 initialPosition;
+	private Vector3 lastRestingPosition;
 	
 	private Rigidbody2D rigidBody;
 	private bool beingCarried;
@@ -62,6 +63,7 @@ public class Minion : MonoBehaviour {
 	protected void Start () 
 	{
 		this.initialPosition = this.transform.position;
+		this.lastRestingPosition = this.initialPosition;
 
 		this.hero = Hero.singleton;
 
@@ -100,20 +102,27 @@ public class Minion : MonoBehaviour {
 	protected void OnTriggerExit2D(Collider2D other) {
 		if (!this.beingCarried && (other == this.backgroundCollider)) {
 			// Left the screen
-			this.ResetPosition();
+			this.ResetPositionToInitial();
 		}
 	}
-
-	// // Private Helper Methods // //
+	
 	public void ResetPosition() 
 	{
-		this.transform.position = this.initialPosition;
+		this.transform.position = this.lastRestingPosition;
+		this.DisableGravity ();
 		this.rigidBody.velocity = Vector2.zero;
 	}
-	
+
+	private void ResetPositionToInitial() {
+		this.transform.position = this.initialPosition;
+		this.EnableGravity ();
+		this.rigidBody.velocity = Vector2.zero;
+	}
+
 	private void DisableGravity() 
 	{
 		this.rigidBody.isKinematic = true;
+		this.lastRestingPosition = this.transform.position;
 	}
 	
 	private void EnableGravity() 

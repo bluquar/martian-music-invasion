@@ -124,7 +124,8 @@ public class Hero : MonoBehaviour {
 			if (hero.minionsMatchNote (this.note)) {
 				LevelManager.singleton.PrePlayNote (this.note, timeToCompletion);
 			} else {
-				LevelManager.singleton.PreFailNote (this.note, timeToCompletion);
+				if (hero.minionsCarrying.Count != 0)
+					LevelManager.singleton.PreFailNote (this.note, timeToCompletion);
 			}
 		}
 	}
@@ -157,7 +158,7 @@ public class Hero : MonoBehaviour {
 	private Vector2 eqPos;
 
 	// List of minions currently being carried
-	private List<Minion> minionsCarrying;
+	public List<Minion> minionsCarrying;
 
 	private LevelManager levelManager;
 
@@ -307,8 +308,10 @@ public class Hero : MonoBehaviour {
 			note.Match ();
 			this.DestroyMinions ();
 		} else {
-			note.Fail ();
-			this.SetDownMinions();
+			if (this.minionsCarrying.Count != 0) {
+				note.Fail ();
+				this.SetDownMinions();
+			}
 		}
 	}
 
