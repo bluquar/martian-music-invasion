@@ -21,7 +21,7 @@ public class CutsceneAudio : MonoBehaviour {
 
 	public static void ChangeScene (string sceneName) {
 		CutsceneAudio ca = CutsceneAudio.singleton;
-		if (sceneName == "IntroCutscene1") {
+		if (sceneName == "IntroCutscene2") {
 			ca.audioSource.clip = ca.alienMusic;
 			ca.audioSource.Play ();
 		} else if (sceneName == "LevelSelection") {
