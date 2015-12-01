@@ -37,7 +37,21 @@ public class Note : MonoBehaviour {
 	}
 
 	public void Fail() {
-		this.levelManager.IncorrectMatch (this);
+		StartCoroutine (PulseRed (LevelManager.singleton.noteFailClip.length));
+	}
+
+	private IEnumerator PulseRed (float length) {
+		SpriteRenderer rend = this.gameObject.GetComponent<SpriteRenderer> ();
+		byte NRED;
+		for (NRED = 0xFF; NRED != 0x0F; NRED -= 0x10) {
+			rend.color = new Color32(0xFF, NRED, NRED, 0xFF);
+			yield return new WaitForSeconds(length / 32);
+		}
+		for (NRED = 0x00; NRED != 0xF0; NRED += 0x10) {
+			rend.color = new Color32(0xFF, NRED, NRED, 0xFF);
+			yield return new WaitForSeconds(length / 32);
+		}
+		rend.color = new Color32 (0xFF, 0xFF, 0xFF, 0xFF);
 	}
 
 	private BoxCollider2D bc;
