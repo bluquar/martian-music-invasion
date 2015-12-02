@@ -17,5 +17,6 @@ public class CutsceneControl : MonoBehaviour {
 	{
 		CutsceneAudio.ChangeScene (levelName);
 		Application.LoadLevel(levelName);
+		GameManager.MyLog ("On Title Screen changing to Cutscene1");
 	}	
 }

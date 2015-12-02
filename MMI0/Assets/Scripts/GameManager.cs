@@ -84,4 +84,8 @@ public class GameManager : MonoBehaviour {
 		Destroy (transform.gameObject);
 		GameManager.measure = null;
 	}
+
+	public static void MyLog(string message) {
+		Debug.Log(message + "\n" + System.DateTime.Now.ToString());
+	}
 }
