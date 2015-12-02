@@ -5,6 +5,8 @@ public class Superdog : MonoBehaviour {
 
 	private SpriteRenderer helpRenderer;
 
+	public static Superdog singleton;
+
 	public void HideHelp() {
 		this.helpRenderer.enabled = false;
 	}
@@ -14,7 +16,10 @@ public class Superdog : MonoBehaviour {
 		this.helpRenderer.enabled = true;
 	}
 
-	// Use this for initialization
+	void Awake () {
+		Superdog.singleton = this;
+	}
+
 	void Start () {
 		this.helpRenderer = this.gameObject.GetComponentInChildren<SpriteRenderer> ();
 		this.HideHelp ();

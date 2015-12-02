@@ -10,9 +10,16 @@ public class LevelManager : MonoBehaviour {
 	public uint maxLives = 3;
 	public GameObject[] lifePrefabs;
 	public GameObject allLivesLostPrefab;
+	public GameObject[] tutorialPrefabs;
 
+	private int tutorialBoxesRemaining;
 	private GameObject[] lifeObjects;
 
+	public bool showingTutorials {
+		get {
+			return tutorialBoxesRemaining > 0;
+		}
+	}
 
 	private uint livesRemaining;
 
@@ -98,6 +105,8 @@ public class LevelManager : MonoBehaviour {
 		// Correct Match
 		this.notesRemaining--;
 
+		Superdog.singleton.HideHelp ();
+
 		if (this.notesRemaining == 0)
 			this.CompleteLevel ();
 	}
@@ -132,12 +141,20 @@ public class LevelManager : MonoBehaviour {
 		StartCoroutine (CompleteLevelAsync ());
 	}
 
-	private void DimChildren(GameObject obj, GameObject except=null) {
+	private void SetChildrenColor(GameObject obj, Color32 color, GameObject except=null) {
 		foreach (SpriteRenderer rend in obj.GetComponentsInChildren<SpriteRenderer>()) {
 			if (rend.gameObject == except)
 				continue;
-			rend.color = Constants.semiTransparent;
+			rend.color = color;
 		}
+	}
+
+	private void DimChildren(GameObject obj, GameObject except=null) {
+		this.SetChildrenColor (obj, Constants.semiTransparent, except);
+	}
+
+	private void UndimChildren(GameObject obj) {
+		this.SetChildrenColor (obj, new Color32 (0xFF, 0xFF, 0xFF, 0xFF));
 	}
 	
 	private IEnumerator CompleteLevelAsync() {
@@ -302,6 +319,8 @@ public class LevelManager : MonoBehaviour {
 		AudioClip backgroundClip = buildingsBackground;
 		this.backgroundAudioSource.clip = backgroundClip;
 		this.backgroundAudioSource.Play ();
+
+		this.InitTutorials ();
 	}
 
 	private void InitLives() {
@@ -318,6 +337,36 @@ public class LevelManager : MonoBehaviour {
 			life.transform.parent = this.transform;
 			life.transform.position += (i / lifePrefabs.Length) * Constants.lifeDistance * Vector3.up;
 			this.lifeObjects[i] = life;
+		}
+	}
+	
+	private void InitTutorials() {
+		this.tutorialBoxesRemaining = this.tutorialPrefabs.Length;
+		if (this.showingTutorials) {
+			StartCoroutine( this.OpenNextTutorialBox());
+		}
+	}
+
+	private GameObject currentTutorialBox;
+
+	private IEnumerator OpenNextTutorialBox() {
+		yield return new WaitForSeconds (0.1f);
+		this.DimChildren (this.gameObject);
+		this.DimChildren (this.measureTransform.gameObject);
+		int prefabIx = this.tutorialPrefabs.Length - this.tutorialBoxesRemaining;
+		GameObject box = Instantiate<GameObject> (this.tutorialPrefabs [prefabIx]);
+		box.GetComponentInChildren<Button>().onClick.AddListener(this.CloseTutorialBox);
+		this.currentTutorialBox = box;
+	}
+
+	public void CloseTutorialBox() {
+		Destroy (this.currentTutorialBox);
+		this.tutorialBoxesRemaining--;
+		if (this.showingTutorials)
+			StartCoroutine (this.OpenNextTutorialBox ());
+		else {
+			this.UndimChildren (this.gameObject);
+			this.UndimChildren (this.measureTransform.gameObject);
 		}
 	}
 
