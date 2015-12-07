@@ -56,6 +56,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 		// For each return to the level selection page, play the unlocked song
 		StartCoroutine(playUnlockedSongAudio() );
+		// As the song plays, the comics or the measures enlarge along with the music
+		StartCoroutine (followAlongWithTiles ());
 	}
 	
 	// Update is called once per frame
@@ -141,6 +143,14 @@ public class LevelSelectionGrid : MonoBehaviour {
 		DialogueText.gameObject.SetActive(false);
 		startPlayingButton.gameObject.SetActive(false);
 	}
+
+	// Follows along with the song audio with either comic tiles or measure tiles
+	private IEnumerator followAlongWithTiles() {
+		for (int i = 0; i < unlockTiles.Length; i++) {
+			// TODO
+		}
+	}
+
 
 }
 
