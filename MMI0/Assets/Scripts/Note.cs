@@ -8,6 +8,8 @@ public class Note : MonoBehaviour {
 
 	public uint number;
 
+
+
 	public int toneCount {
 		get {
 			return this.names.Length;
@@ -24,6 +26,15 @@ public class Note : MonoBehaviour {
 
 	private Hero hero;
 	private LevelManager levelManager;
+	private bool clicksEnabled;
+
+	public void EnableClicks() {
+		this.clicksEnabled = true;
+	}
+
+	public void DisableClicks() {
+		this.clicksEnabled = false;
+	}
 
 	public Vector3 position {
 		get {
@@ -58,9 +69,7 @@ public class Note : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		//this.bc = this.gameObject.AddComponent <BoxCollider2D>();
-		//this.bc.enabled = true;
-		//this.bc.isTrigger = true;
+		this.clicksEnabled = true;
 
 		this.hero = Hero.singleton;
 		this.levelManager = LevelManager.singleton;
@@ -74,6 +83,12 @@ public class Note : MonoBehaviour {
 	}
 
 	protected void OnMouseDown() {
+		if (!this.clicksEnabled)
+			return;
+
+		if (this.levelManager.showingTutorials)
+			this.levelManager.NoteClickedInTutorial (this);
+
 		this.hero.TurnInNote (this);
 	}
 }

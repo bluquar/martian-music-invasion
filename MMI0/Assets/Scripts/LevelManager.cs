@@ -31,6 +31,13 @@ public class LevelManager : MonoBehaviour {
 	private List<Note> notesAutoclicked;
 	private Random random;
 
+	private Hero hero;
+	private BackgroundClick background;
+
+	
+	private Minion tutorialMinion;
+	private Note tutorialNote;
+
 	private Transform measureTransform;
 	
 	public bool isTutorialLevel {
@@ -300,6 +307,9 @@ public class LevelManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		this.hero = Hero.singleton;
+		this.background = BackgroundClick.singleton;
+
 		this.backgroundAudioSource = this.GetComponent<AudioSource> ();
 
 		this.zapAudioSource = this.gameObject.AddComponent<AudioSource> ();
@@ -343,30 +353,106 @@ public class LevelManager : MonoBehaviour {
 	private void InitTutorials() {
 		this.tutorialBoxesRemaining = this.tutorialPrefabs.Length;
 		if (this.showingTutorials) {
-			StartCoroutine( this.OpenNextTutorialBox());
+			StartCoroutine( this.OpenFirstTutorialBox());
 		}
 	}
 
 	private GameObject currentTutorialBox;
+	private TutorialBox currentTutorialBoxScript;
+
+	public void DisableBackground() {
+		this.background.DisableClicks ();
+	}
+
+	public void EnableBackground() {
+		this.background.EnableClicks ();
+	}
+
+	private void DisableMinions() {
+		foreach (SpriteRenderer s in this.minions[0].transform.parent.GetComponentsInChildren<SpriteRenderer>()) {
+			s.color = Constants.semiTransparent;
+		}
+		foreach (Minion m in this.minions) {
+			m.DisableClicks();
+		}
+	}
+	
+	private void EnableMinions() {
+		foreach (Minion m in this.minions) {
+			m.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+			m.EnableClicks();
+		}
+	}
+
+	private void DisableNotes() {
+		foreach (Note n in this.notes) {
+			n.gameObject.GetComponent<SpriteRenderer>().color = Constants.semiTransparent;
+			n.DisableClicks();
+		}
+	}
+
+	private void EnableNotes() {
+		foreach (Note n in this.notes) {
+			n.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+			n.EnableClicks();
+		}
+	}
+
+	private IEnumerator OpenFirstTutorialBox() {
+		yield return new WaitForSeconds (0.1f);
+		this.DisableBackground();
+		this.DisableMinions();
+		this.DisableNotes();
+		StartCoroutine(this.OpenNextTutorialBox ());
+	}
 
 	private IEnumerator OpenNextTutorialBox() {
 		yield return new WaitForSeconds (0.1f);
-		this.DimChildren (this.gameObject);
-		this.DimChildren (this.measureTransform.gameObject);
 		int prefabIx = this.tutorialPrefabs.Length - this.tutorialBoxesRemaining;
 		GameObject box = Instantiate<GameObject> (this.tutorialPrefabs [prefabIx]);
-		box.GetComponentInChildren<Button>().onClick.AddListener(this.CloseTutorialBox);
+
+		Button completeButton = box.GetComponentInChildren<Button> ();
+		if (completeButton != null) {
+			completeButton.onClick.AddListener(this.CloseTutorialBox);
+		}
+
+		TutorialBox tbox = box.GetComponent<TutorialBox> ();
+		this.tutorialNote = null;
+		this.tutorialMinion = null;
+		if (tbox != null) {
+			tbox.Open(this.minions, this.notes);
+			this.tutorialMinion = tbox.minion;
+			this.tutorialNote = tbox.note;
+		}
+
 		this.currentTutorialBox = box;
+		this.currentTutorialBoxScript = tbox;
+	}
+
+	public void NoteClickedInTutorial(Note n) {
+		if (n == this.tutorialNote)
+			this.CloseTutorialBox ();
+	}
+
+	public void MinionClickedInTutorial(Minion m) {
+		if (m == this.tutorialMinion)
+			this.CloseTutorialBox ();
 	}
 
 	public void CloseTutorialBox() {
+		TutorialBox tbox = this.currentTutorialBoxScript;
+		if (tbox != null) {
+			tbox.Close();
+		}
+
 		Destroy (this.currentTutorialBox);
 		this.tutorialBoxesRemaining--;
 		if (this.showingTutorials)
 			StartCoroutine (this.OpenNextTutorialBox ());
 		else {
-			this.UndimChildren (this.gameObject);
-			this.UndimChildren (this.measureTransform.gameObject);
+			this.EnableMinions();
+			this.EnableNotes();
+			this.EnableBackground();
 		}
 	}
 
@@ -402,12 +488,12 @@ public class LevelManager : MonoBehaviour {
 		}
 
 		foreach (Minion m in toPickUp) {
-			Hero.singleton.PickUpMinion(m);
+			this.hero.PickUpMinion(m);
 			this.minionsAutoclicked.Add(m);
 		}
 
 		this.notesAutoclicked.Add(note);
-		Hero.singleton.TurnInNote(note);
+		this.hero.TurnInNote(note);
 	}
 
 	// Update is called once per frame
@@ -417,7 +503,7 @@ public class LevelManager : MonoBehaviour {
 		} 
 
 		if (Input.GetKeyDown (KeyCode.Return)) {
-			Hero.singleton.Caffeinate(5f);
+			this.hero.Caffeinate(5f);
 			this.autoplay = true;
 		}
 
@@ -426,7 +512,7 @@ public class LevelManager : MonoBehaviour {
 		} 
 
 		if (Input.GetKeyDown (KeyCode.C)) {
-			Hero.singleton.Caffeinate();
+			this.hero.Caffeinate();
 		}
 
 		if (this.autoplay || Input.GetKeyDown (KeyCode.M)) {

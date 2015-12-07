@@ -8,16 +8,22 @@ public class BackgroundClick : MonoBehaviour
 
 	public static BackgroundClick singleton;
 
+	private bool clicksEnabled;
+
 	protected void Awake() {
 		BackgroundClick.singleton = this;
 	}
 
 	protected void Start() {
 		this.hero = Hero.singleton;
+		this.clicksEnabled = true;
 	}
 
     private void FlyHero()
     {
+		if (!this.clicksEnabled)
+			return;
+
         Ray ray;
 
 #if (UNITY_ANDROID || UNITY_IPHONE || UNITY_WP8)
@@ -34,4 +40,12 @@ public class BackgroundClick : MonoBehaviour
     {
         this.FlyHero();
     }
+
+	public void DisableClicks() {
+		this.clicksEnabled = false;
+	}
+
+	public void EnableClicks() {
+		this.clicksEnabled = true;
+	}
 }

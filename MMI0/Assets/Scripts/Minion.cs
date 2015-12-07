@@ -8,6 +8,7 @@ public class Minion : MonoBehaviour {
 	private BackgroundClick background;
 	
 	public char letter;
+	private bool clicksEnabled;
 
 	/* Detach from the hero onto the scene as the parent
 	 */
@@ -66,6 +67,7 @@ public class Minion : MonoBehaviour {
 		this.lastRestingPosition = this.initialPosition;
 
 		this.hero = Hero.singleton;
+		this.clicksEnabled = true;
 
 		this.background = BackgroundClick.singleton;
 		this.backgroundCollider = background.GetComponent<Collider2D> ();
@@ -75,7 +77,13 @@ public class Minion : MonoBehaviour {
 
 	protected void OnMouseDown()
 	{
-		hero.PickUpMinion (this);
+		if (!this.clicksEnabled)
+			return;
+
+		if (LevelManager.singleton.showingTutorials)
+			LevelManager.singleton.MinionClickedInTutorial (this);
+
+		this.hero.PickUpMinion (this);
 	}
 
 	/* Called when the minion touches something with a 2D Collider
@@ -95,6 +103,14 @@ public class Minion : MonoBehaviour {
 			return;
 		}
 		this.DisableGravity();
+	}
+
+	public void EnableClicks() {
+		this.clicksEnabled = true;
+	}
+
+	public void DisableClicks() {
+		this.clicksEnabled = false;
 	}
 	
 	/* Called when the minion stops touching something with a 2D Collider
