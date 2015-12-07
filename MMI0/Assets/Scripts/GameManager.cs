@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour {
 	public static GameObject measure;
 	public static Transform measureTransform;
 
+	public Sprite[] comicSprites;
+
 	public static void SetMeasure(GameObject measure, Transform transform) {
 		GameManager.measure = measure;
 		GameManager.measureTransform = transform;
@@ -17,11 +19,16 @@ public class GameManager : MonoBehaviour {
 	
 	void Awake() {
 		// Do not destory this GameManager instance when changing scenes in order to store data
-		DontDestroyOnLoad (this.gameObject);
+		// DontDestroyOnLoad (this.gameObject);
 	}
 
 	void Start() {
 		if (GameManager.measure != null) {
+			if (!GameManager.integratedVersion) {
+				GameObject measure = GameManager.measure;
+				foreach (SpriteRenderer sr in measure.transform.GetComponentsInChildren<SpriteRenderer>())
+					sr.sprite = this.comicSprites[GameManager.currentLevel-2];
+			}
 			StartCoroutine (this.ShrinkMeasure(GameManager.measure));
 		}
 	}
@@ -38,10 +45,20 @@ public class GameManager : MonoBehaviour {
 		measure.transform.position = GameManager.measureTransform.position;
 		measure.transform.localScale = GameManager.measureTransform.localScale * (5f / 4.25f);
 
-		yield return new WaitForSeconds (0.2f);
-
 		LevelSelectionGrid grid = LevelSelectionGrid.singleton;
-		GameObject measureTile = grid.musicUnlockTiles [currentLevel - 2];
+
+		GameObject measureTile;
+		if (GameManager.integratedVersion) {
+			measureTile = grid.musicUnlockTiles [currentLevel - 2];
+		    yield return new WaitForSeconds (0.2f);
+
+		} else {
+			measureTile = grid.comicUnlockTiles [currentLevel - 2];
+			measure.transform.localScale *= 2.5f;
+			measure.transform.position = new Vector3(0, 0, measure.transform.position.z);
+			//measure.GetComponent<SpriteRenderer>().sprite.pivot
+			yield return new WaitForSeconds(2f);
+		}
 
 		Vector3 startPosition = measure.transform.position;
 		Vector3 destPosition = new Vector3(measureTile.transform.position.x, measureTile.transform.position.y, -9);

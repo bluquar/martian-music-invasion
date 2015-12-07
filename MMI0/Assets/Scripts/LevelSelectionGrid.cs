@@ -146,6 +146,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Follows along with the song audio with either comic tiles or measure tiles
 	private IEnumerator followAlongWithTiles() {
+		yield return new WaitForSeconds (0.1f);
 		for (int i = 0; i < unlockTiles.Length; i++) {
 			// TODO
 		}

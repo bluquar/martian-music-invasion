@@ -459,6 +459,11 @@ public class LevelManager : MonoBehaviour {
 	private bool autoplay = false;
 
 	private void AutoMatch() {
+		if (this.showingTutorials) {
+			this.CloseTutorialBox ();
+			return;
+		}
+
 		List<Note> notes = new List<Note>();
 		foreach (Note n in this.notes) {
 			if (!this.notesAutoclicked.Contains(n))
