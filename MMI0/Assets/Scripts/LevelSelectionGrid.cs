@@ -9,7 +9,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	private GameObject playLevelButton;
 	private int[] tutorialLevels = new int[] {1, 4, 7, 10, 13, 16};
 
-	// The two arrays dependent on version
+	// The two arrays of unlock tiles dependent on version
 	public GameObject[] musicUnlockTiles;
 	public GameObject[] comicUnlockTiles;
 	
@@ -20,11 +20,17 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Audio
 	private AudioSource audioSource;
 	public AudioClip[] songClips;
+	// Set this to either the individual comic tiles or the song measure tiles to follow along
+	private GameObject[] audioPopUpTiles;
+	private List<int> audioFullLevels = new List<int> {1, 7, 13, 18};
 
 	// First time on Level Selection Page dialogue box items
 	public GameObject outlinedBox;
 	public GameObject startPlayingButton;
 	public GameObject DialogueText;
+
+	// Array of individual comic tiles or individual measure song tiles for audio following along
+	public GameObject[] songMeasureTiles;
 
 	public static LevelSelectionGrid singleton;
 
@@ -74,6 +80,9 @@ public class LevelSelectionGrid : MonoBehaviour {
 			// disable comic play button
 			playLevelButton = musicPlayButton;
 
+			// set popping up tiles array equal to the songMeasureTiles array
+			audioPopUpTiles = songMeasureTiles;
+
 			//Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
 			//playLevelButton.transform.position = comicUnlockTiles[GameManager.currentLevel-1].transform.position;
 
@@ -85,6 +94,9 @@ public class LevelSelectionGrid : MonoBehaviour {
 			// disable music play button
 			playLevelButton = comicPlayButton;
 
+			// set popping up tiles array equal to the individual Comic Tiles array
+			// TODO !!!
+			
 			//Debug.Log (string.Format ("{0}: comicPlayButton", GameManager.currentLevel));
 			//playLevelButton.transform.position = musicUnlockTiles[GameManager.currentLevel-1].transform.position;
 
@@ -146,11 +158,24 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Follows along with the song audio with either comic tiles or measure tiles
 	private IEnumerator followAlongWithTiles() {
-		for (int i = 0; i < unlockTiles.Length; i++) {
-			// TODO
+		if (audioFullLevels.Contains(GameManager.currentLevel))
+		for (int i = 0; i < audioPopUpTiles.Length; i++) {
+			popOut(audioPopUpTiles[i]);
+			yield return new WaitForSeconds(2);
+			popIn(audioPopUpTiles[i]);
 		}
 	}
 
+	private void popOut(GameObject tile) {
+		tile.transform.localScale *= 1.5f;
+		tile.transform.position -= Vector3.forward * 2;
+
+	}
+
+	private void popIn(GameObject tile) {
+		tile.transform.localScale *= 0.66f;
+		tile.transform.position -= Vector3.back * 2;
+	}
 
 }
 
