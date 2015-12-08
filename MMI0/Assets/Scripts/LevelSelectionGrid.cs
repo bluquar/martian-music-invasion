@@ -21,7 +21,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 	private AudioSource audioSource;
 	public AudioClip[] songClips;
 	// Set this to either the individual comic tiles or the song measure tiles to follow along
-	private GameObject[] audioPopUpTiles;
+	private GameObject[] audioBackgroundPopUpTiles;
+	private GameObject[] audioLockPopUpTiles;
 	private List<int> audioFullLevels = new List<int> {1, 7, 13, 18};
 
 	// First time on Level Selection Page dialogue box items
@@ -81,7 +82,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 			playLevelButton = musicPlayButton;
 
 			// set popping up tiles array equal to the songMeasureTiles array
-			audioPopUpTiles = songMeasureTiles;
+			audioBackgroundPopUpTiles = songMeasureTiles;
+			audioLockPopUpTiles = musicUnlockTiles;
 
 			//Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
 			//playLevelButton.transform.position = comicUnlockTiles[GameManager.currentLevel-1].transform.position;
@@ -159,24 +161,34 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Follows along with the song audio with either comic tiles or measure tiles
 	private IEnumerator followAlongWithTiles() {
 		if (audioFullLevels.Contains(GameManager.currentLevel))
-		for (int i = 0; i < audioPopUpTiles.Length; i++) {
-			popOut(audioPopUpTiles[i]);
+		for (int i = 0; i < audioBackgroundPopUpTiles.Length; i++) {
+			popOut(audioBackgroundPopUpTiles[i]);
+			popOut (audioLockPopUpTiles[i]);
 			yield return new WaitForSeconds(2);
-			popIn(audioPopUpTiles[i]);
+			popIn(audioBackgroundPopUpTiles[i]);
+			popIn (audioLockPopUpTiles[i]);
 		}
 	}
 
 	private void popOut(GameObject tile) {
-		tile.transform.localScale *= 1.5f;
+		tile.transform.localScale *= 1.2f;
 		tile.transform.position -= Vector3.forward * 2;
 
 	}
 
 	private void popIn(GameObject tile) {
-		tile.transform.localScale *= 0.66f;
+		tile.transform.localScale *= 0.83f;
 		tile.transform.position -= Vector3.back * 2;
 	}
 
+
+	// TODO
+//	private void dim(GameObject[] objects) {
+//		for (int i = 0; i < objects.Length; i++) {
+//			SpriteRenderer rend = objects[i].GetComponent<SpriteRenderer>();
+//			rend.color = new Color(1.0f,1.0f,1.0f,1.0f);
+//		}
+//	}
 }
 
 
