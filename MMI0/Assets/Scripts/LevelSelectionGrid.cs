@@ -90,9 +90,6 @@ public class LevelSelectionGrid : MonoBehaviour {
 			audioBackgroundPopUpTiles = songMeasureTiles;
 			audioLockPopUpTiles = musicUnlockTiles;
 
-			//Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
-			//playLevelButton.transform.position = comicUnlockTiles[GameManager.currentLevel-1].transform.position;
-
 			comicPlayButton.SetActive (false);
 		} else {
 			// disable the tiles from other version
@@ -103,10 +100,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 			// set popping up tiles array equal to the individual Comic Tiles array
 			// TODO !!!
-			
-			//Debug.Log (string.Format ("{0}: comicPlayButton", GameManager.currentLevel));
-			//playLevelButton.transform.position = musicUnlockTiles[GameManager.currentLevel-1].transform.position;
-
+		
 			musicPlayButton.SetActive(false);
 		}
 
@@ -222,15 +216,6 @@ public class LevelSelectionGrid : MonoBehaviour {
 			return 1.1f;
 		}
 	}
-
-
-	// TODO
-//	private void dim(GameObject[] objects) {
-//		for (int i = 0; i < objects.Length; i++) {
-//			SpriteRenderer rend = objects[i].GetComponent<SpriteRenderer>();
-//			rend.color = new Color(1.0f,1.0f,1.0f,1.0f);
-//		}
-//	}
 
 }
 
