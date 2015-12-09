@@ -7,7 +7,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// unlockTiles is set equal to the version of the game
 	private GameObject[] unlockTiles;
 	private GameObject playLevelButton;
-	private int[] tutorialLevels = new int[] {1, 4, 7, 10, 13, 16};
+	private List<int> tutorialLevels = new List<int> {1, 4, 7, 10, 13, 16};
 
 	// The two arrays of unlock tiles dependent on version
 	public GameObject[] musicUnlockTiles;
@@ -119,7 +119,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 				musicUnlockTiles [i].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		} else if (version == "tutorial") {
-			for (int i = 0; i < tutorialLevels.Length; i++) {
+			for (int i = 0; i < tutorialLevels.Count; i++) {
 				unlockTiles[tutorialLevels[i]-1].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		}
@@ -160,11 +160,21 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Follows along with the song audio with either comic tiles or measure tiles
 	private IEnumerator followAlongWithTiles() {
-		if (audioFullLevels.Contains(GameManager.currentLevel))
+//		if (audioFullLevels.Contains (GameManager.currentLevel)) {
+
+//		}
 		for (int i = 0; i < audioBackgroundPopUpTiles.Length; i++) {
 			popOut(audioBackgroundPopUpTiles[i]);
 			popOut (audioLockPopUpTiles[i]);
-			yield return new WaitForSeconds(2);
+
+			if (tutorialLevels.Contains (i+1)) {
+				yield return new WaitForSeconds (2);
+			} else if ((i+1) < GameManager.currentLevel) {
+				yield return new WaitForSeconds(2);
+			} else {
+				yield return new WaitForSeconds(5);
+			}
+
 			popIn(audioBackgroundPopUpTiles[i]);
 			popIn (audioLockPopUpTiles[i]);
 		}
@@ -180,6 +190,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 		tile.transform.localScale *= 0.83f;
 		tile.transform.position -= Vector3.back * 2;
 	}
+		
 
 
 	// TODO
@@ -189,6 +200,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 //			rend.color = new Color(1.0f,1.0f,1.0f,1.0f);
 //		}
 //	}
+
 }
 
 
