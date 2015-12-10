@@ -4,10 +4,15 @@ using System.Collections.Generic;
 
 public class LevelSelectionGrid : MonoBehaviour {
 
+	// Setting the boundaries of the three stages
+	private int stageOneEnd = 6;
+	private int stageTwoEnd = 12;
+	private int stageThreeEnd = GameManager.numOfLevels;
+
 	// unlockTiles is set equal to the version of the game
 	private GameObject[] unlockTiles;
 	private GameObject playLevelButton;
-	private int[] tutorialLevels = new int[] {1, 4, 7, 10, 13, 16};
+	private List<int> tutorialLevels = new List<int> {1, 4, 7, 10, 13, 16};
 
 	// The two arrays of unlock tiles dependent on version
 	public GameObject[] musicUnlockTiles;
@@ -21,7 +26,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 	private AudioSource audioSource;
 	public AudioClip[] songClips;
 	// Set this to either the individual comic tiles or the song measure tiles to follow along
-	private GameObject[] audioPopUpTiles;
+	private GameObject[] audioBackgroundPopUpTiles;
+	private GameObject[] audioLockPopUpTiles;
 	private List<int> audioFullLevels = new List<int> {1, 7, 13, 18};
 
 	// First time on Level Selection Page dialogue box items
@@ -81,10 +87,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 			playLevelButton = musicPlayButton;
 
 			// set popping up tiles array equal to the songMeasureTiles array
-			audioPopUpTiles = songMeasureTiles;
-
-			//Debug.Log (string.Format ("{0}: musicPlayButton", GameManager.currentLevel));
-			//playLevelButton.transform.position = comicUnlockTiles[GameManager.currentLevel-1].transform.position;
+			audioBackgroundPopUpTiles = songMeasureTiles;
+			audioLockPopUpTiles = musicUnlockTiles;
 
 			comicPlayButton.SetActive (false);
 		} else {
@@ -96,10 +100,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 			// set popping up tiles array equal to the individual Comic Tiles array
 			// TODO !!!
-			
-			//Debug.Log (string.Format ("{0}: comicPlayButton", GameManager.currentLevel));
-			//playLevelButton.transform.position = musicUnlockTiles[GameManager.currentLevel-1].transform.position;
-
+		
 			musicPlayButton.SetActive(false);
 		}
 
@@ -117,7 +118,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 				musicUnlockTiles [i].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		} else if (version == "tutorial") {
-			for (int i = 0; i < tutorialLevels.Length; i++) {
+			for (int i = 0; i < tutorialLevels.Count; i++) {
 				unlockTiles[tutorialLevels[i]-1].GetComponent<SpriteRenderer> ().enabled = false;
 			}
 		}
@@ -158,23 +159,62 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Follows along with the song audio with either comic tiles or measure tiles
 	private IEnumerator followAlongWithTiles() {
-		if (audioFullLevels.Contains(GameManager.currentLevel))
-		for (int i = 0; i < audioPopUpTiles.Length; i++) {
-			popOut(audioPopUpTiles[i]);
-			yield return new WaitForSeconds(2);
-			popIn(audioPopUpTiles[i]);
-		}
-	}
+		int startIndex = 0;
+		int endIndex = 0;
 
+		// play the full audio at the end of each stage for levels 1, 7, 13, 18 
+		if (audioFullLevels.Contains (GameManager.currentLevel)) {
+			startIndex = 0;
+			endIndex = audioBackgroundPopUpTiles.Length;
+		} else if (GameManager.currentLevel > 0 && GameManager.currentLevel <= stageOneEnd) {
+			// if current level is only in stage one, only pop out stage one tiles
+			startIndex = 0;
+			endIndex = stageOneEnd;
+		} else if (GameManager.currentLevel > stageOneEnd && GameManager.currentLevel <= stageTwoEnd) {
+			// pop out stage two tiles only
+			startIndex = stageOneEnd;
+			endIndex = stageTwoEnd;
+		} else {
+			// pop out stage three tiles
+			startIndex = stageTwoEnd;
+			endIndex = stageThreeEnd;
+		}
+
+		for (int i = startIndex; i < endIndex; i++) {
+			popOut(audioBackgroundPopUpTiles[i]);
+			popOut (audioLockPopUpTiles[i]);
+			
+			float numOfSeconds = popOutLengthInSeconds(i);
+			yield return new WaitForSeconds(numOfSeconds);
+			
+			popIn(audioBackgroundPopUpTiles[i]);
+			popIn (audioLockPopUpTiles[i]);
+		}
+		
+	}
+	
 	private void popOut(GameObject tile) {
-		tile.transform.localScale *= 1.5f;
+		tile.transform.localScale *= 1.2f;
 		tile.transform.position -= Vector3.forward * 2;
 
 	}
 
 	private void popIn(GameObject tile) {
-		tile.transform.localScale *= 0.66f;
+		tile.transform.localScale *= 0.83f;
 		tile.transform.position -= Vector3.back * 2;
+	}
+
+	private float popOutLengthInSeconds(int i) {
+		if (tutorialLevels.Contains(i+1)) {
+			// tutorial levels always have no zaps
+			return 2.0f;
+		} else if (i+1 < GameManager.currentLevel) {
+			// unlocked tiles have longer audio than the zaps
+			return 2.0f;
+		} else {
+			// zaps are for locked tiles and are shorter
+			return 1.1f;
+		}
 	}
 
 }
