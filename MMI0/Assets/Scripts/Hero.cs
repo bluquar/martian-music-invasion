@@ -327,14 +327,15 @@ public class Hero : MonoBehaviour {
     private void FinishCommand()
     {
         HeroCommand cmd = this.currentCommand;
+		if (cmd.stillValid ()) {
+			this.floatingTime = (cmd.finish.y > cmd.start.y) ? 0 : (Mathf.PI / this.floatingFreq);
 
-		this.floatingTime = (cmd.finish.y > cmd.start.y) ? 0 : (Mathf.PI / this.floatingFreq);
+			this.eqPos = cmd.finish;
+			this.transform.position = this.eqPos;
 
-		this.eqPos = cmd.finish;
-		this.transform.position = this.eqPos;
-
-		if (cmd.stillValid())
-			cmd.complete (this);
+			if (cmd.stillValid ())
+				cmd.complete (this);
+		}
 
 		bool startingNewCommand = false;
 

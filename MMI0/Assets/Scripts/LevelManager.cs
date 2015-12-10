@@ -11,6 +11,7 @@ public class LevelManager : MonoBehaviour {
 	public GameObject[] lifePrefabs;
 	public GameObject allLivesLostPrefab;
 	public GameObject[] tutorialPrefabs;
+	public GameObject tutorialLevelIndicator;
 
 	private int tutorialBoxesRemaining;
 	private GameObject[] lifeObjects;
@@ -307,6 +308,9 @@ public class LevelManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+		if (!this.isTutorialLevel)
+			this.tutorialLevelIndicator.GetComponent<SpriteRenderer> ().enabled = false;
+
 		this.hero = Hero.singleton;
 		this.background = BackgroundClick.singleton;
 
@@ -386,7 +390,7 @@ public class LevelManager : MonoBehaviour {
 
 	private void DisableNotes() {
 		foreach (Note n in this.notes) {
-			n.gameObject.GetComponent<SpriteRenderer>().color = Constants.semiTransparent;
+			//n.gameObject.GetComponent<SpriteRenderer>().color = Constants.semiTransparent;
 			n.DisableClicks();
 		}
 	}
