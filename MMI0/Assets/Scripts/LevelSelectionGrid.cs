@@ -28,7 +28,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Set this to either the individual comic tiles or the song measure tiles to follow along
 	private GameObject[] audioBackgroundPopUpTiles;
 	private GameObject[] audioLockPopUpTiles;
-	private List<int> audioFullLevels = new List<int> {1, 7, 13, 18};
+	private List<int> audioFullLevels = new List<int> {1, 7, 13, 19};
 
 	// First time on Level Selection Page dialogue box items
 	public GameObject outlinedBox;

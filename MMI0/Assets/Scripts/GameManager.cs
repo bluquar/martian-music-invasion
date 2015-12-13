@@ -17,11 +17,6 @@ public class GameManager : MonoBehaviour {
 		GameManager.measureTransform = transform;
 	}
 	
-	void Awake() {
-		// Do not destory this GameManager instance when changing scenes in order to store data
-		// DontDestroyOnLoad (this.gameObject);
-	}
-
 	void Start() {
 		if (GameManager.measure != null) {
 			if (!GameManager.integratedVersion) {
@@ -40,7 +35,6 @@ public class GameManager : MonoBehaviour {
 	}
 
 	private IEnumerator ShrinkMeasure (GameObject measure) {
-		//yield return new WaitForSeconds (1f);
 		measure.transform.parent = this.gameObject.transform;
 		measure.transform.position = GameManager.measureTransform.position;
 		measure.transform.localScale = GameManager.measureTransform.localScale * (5f / 4.25f);

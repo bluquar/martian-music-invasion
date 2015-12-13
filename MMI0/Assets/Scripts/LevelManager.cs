@@ -8,6 +8,7 @@ public class LevelManager : MonoBehaviour {
 	
 	public uint levelNumber;
 	public uint maxLives = 3;
+
 	public GameObject[] lifePrefabs;
 	public GameObject allLivesLostPrefab;
 	public GameObject[] tutorialPrefabs;
