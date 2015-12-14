@@ -25,6 +25,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// Audio
 	private AudioSource audioSource;
 	public AudioClip[] songClips;
+    public AudioClip[] stageClips;
 	// Set this to either the individual comic tiles or the song measure tiles to follow along
 	private GameObject[] audioBackgroundPopUpTiles;
 	private GameObject[] audioLockPopUpTiles;
@@ -37,6 +38,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// Array of individual comic tiles or individual measure song tiles for audio following along
 	public GameObject[] songMeasureTiles;
+    public GameObject[] comicTiles;
 
 	public static LevelSelectionGrid singleton;
 
@@ -98,8 +100,8 @@ public class LevelSelectionGrid : MonoBehaviour {
 			// disable music play button
 			playLevelButton = comicPlayButton;
 
-			// set popping up tiles array equal to the individual Comic Tiles array
-			// TODO !!!
+            audioBackgroundPopUpTiles = comicTiles;
+            audioLockPopUpTiles = comicUnlockTiles;
 		
 			musicPlayButton.SetActive(false);
 		}
@@ -139,7 +141,24 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 	// plays the unlocked song according to the unlocked levels
 	private IEnumerator playUnlockedSongAudio () {
-		AudioClip levelClip = songClips[GameManager.currentLevel-1];
+        AudioClip levelClip;
+        if (GameManager.integratedVersion) {
+            levelClip = songClips[GameManager.currentLevel - 1];
+        } else {
+            if (audioFullLevels.Contains(GameManager.currentLevel))
+                // Play the entire song
+                levelClip = songClips[18];
+            else if (GameManager.currentLevel < 7)
+                // Play the first stage
+                levelClip = stageClips[0];
+            else if (GameManager.currentLevel < 13)
+                // Play the second stage
+                levelClip = stageClips[1];
+            else
+                // Play the third stage
+                levelClip = stageClips[2];
+
+        }
 		this.audioSource.clip = levelClip;
 		this.audioSource.Play ();
 		yield return new WaitForSeconds(levelClip.length);
@@ -208,7 +227,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 		if (tutorialLevels.Contains(i+1)) {
 			// tutorial levels always have no zaps
 			return 2.0f;
-		} else if (i+1 < GameManager.currentLevel) {
+		} else if (i+1 < GameManager.currentLevel || !GameManager.integratedVersion) {
 			// unlocked tiles have longer audio than the zaps
 			return 2.0f;
 		} else {
