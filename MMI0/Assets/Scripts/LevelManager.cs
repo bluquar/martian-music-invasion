@@ -444,7 +444,17 @@ public class LevelManager : MonoBehaviour {
 			this.CloseTutorialBox ();
 	}
 
-	public void CloseTutorialBox() {
+    public void MinionPickedUp()
+    {
+        // When a minion is picked up, we need to make sure
+        // there were no other minions on top of it
+        foreach (Minion m in this.minions)
+        {
+            m.EnableGravity();
+        }
+    }
+
+    public void CloseTutorialBox() {
 		TutorialBox tbox = this.currentTutorialBoxScript;
 		if (tbox != null) {
 			tbox.Close();
@@ -465,7 +475,8 @@ public class LevelManager : MonoBehaviour {
 
 	private void AutoMatch() {
 		if (this.showingTutorials) {
-			this.CloseTutorialBox ();
+            if (this.currentTutorialBox != null)
+			    this.CloseTutorialBox ();
 			return;
 		}
 

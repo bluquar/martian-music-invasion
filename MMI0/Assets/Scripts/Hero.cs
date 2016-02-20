@@ -272,7 +272,7 @@ public class Hero : MonoBehaviour {
 
 		//minion.transform.position += this.minionStackHeight;
 		minion.transform.position += Vector3.back * this.minionsCarrying.Count;
-
+        
 		this.minionsCarrying.Add (minion);
 	}
 
@@ -280,7 +280,8 @@ public class Hero : MonoBehaviour {
 		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
 			this.SetDownMinions ();
 
-		this.PickupMinion (minion);
+        this.PickupMinion(minion);
+        this.levelManager.MinionPickedUp();
 	}
 
 	private string getMinionLetters() {

@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour {
 	private IEnumerator ShrinkMeasure (GameObject measure) {
 		measure.transform.parent = this.gameObject.transform;
 		measure.transform.position = GameManager.measureTransform.position;
-		measure.transform.localScale = GameManager.measureTransform.localScale * (5f / 4.25f);
+		measure.transform.localScale = GameManager.measureTransform.localScale * (4.95f / 4.25f);
 
 		LevelSelectionGrid grid = LevelSelectionGrid.singleton;
 

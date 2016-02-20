@@ -35,6 +35,7 @@ MMI0/*
 !MMI0/Assets/*/*/*/*/*/*
 !MMI0/ProjectSettings
 !MMI0/ProjectSettings/*
+!mmi_server
 
 # Exclude files we don't want
 .DS_Store
