@@ -20,7 +20,6 @@ MMI0/Assets/*/*
 MMI0/Assets/*
 MMI0/ProjectSettings/*
 MMI0/*
-*
 
 # Re-include the things we want to keep
 !LICENSE
@@ -35,7 +34,6 @@ MMI0/*
 !MMI0/Assets/*/*/*/*/*/*
 !MMI0/ProjectSettings
 !MMI0/ProjectSettings/*
-!mmi_server
 
 # Exclude files we don't want
 .DS_Store
