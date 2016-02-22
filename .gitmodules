@@ -1,0 +1,3 @@
+[submodule ".\\MMI0\\Assets\\Scripts\\Unity-Logger"]
+	path = .\\MMI0\\Assets\\Scripts\\Unity-Logger
+	url = https://github.com/bluquar/Unity-Logger.git
