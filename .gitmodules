@@ -1,5 +1,5 @@
-[submodule ".\\MMI0\\Assets\\Scripts\\Unity-Logger"]
-	path = .\\MMI0\\Assets\\Scripts\\Unity-Logger
+[submodule "MMI0/Assets/Scripts/Unity-Logger"]
+	path = MMI0/Assets/Scripts/Unity-Logger
 	url = https://github.com/bluquar/Unity-Logger.git
 [submodule "MMI0\\Assets\\GitMerge-for-Unity"]
 	path = MMI0\\Assets\\GitMerge-for-Unity
