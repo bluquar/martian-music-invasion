@@ -21,7 +21,7 @@ public class Hero : MonoBehaviour {
     public void PickUpMinion(Minion minion)
     {
 		if (this.minionsCarrying.Contains (minion)) {
-			this.SetDownMinions ();
+			this.SetDownMinions (minion);
 		} else {
 			this.commandQ.Enqueue (new PickupMinionCommand (minion, this));
 		}
@@ -57,10 +57,12 @@ public class Hero : MonoBehaviour {
 		private Vector3 destination;
 
 		public MoveCommand(Vector3 destination) {
+			Logger.Instance.LogAction("Hero", "Move Command", destination.ToString());
 			this.destination = destination;
 		}
 
 		public override void complete (Hero hero) { 
+			Logger.Instance.LogAction("Hero", "Move Complete", destination.ToString());
 			hero.CompleteMove ();
 		}
 
@@ -85,14 +87,24 @@ public class Hero : MonoBehaviour {
 		public PickupMinionCommand(Minion minion, Hero hero) {
 			this.minion = minion;
 			this.hero = hero;
+			Logger.Instance.LogAction ("Minion", "Pickup Command Issued", this.minion.name);
 		}
 
 		public override void complete (Hero hero) {
+			Logger.Instance.LogAction ("Minion", "Pickup Complete", this.minion.name);
 			hero.CompletePickupMinion (this.minion);
 		}
 
 		public override bool stillValid () {
-			return this.minion.gameObject != null;
+			if (this.minion.gameObject == null) {
+				Logger.Instance.LogAction ("Minion", "Pickup Fail, Destroyed", this.minion.name);
+				return false;
+			} else if (hero.minionsCarrying.Contains(this.minion)) {
+                Logger.Instance.LogAction("Minion", "Pickup Fail, Already Holding", this.minion.name);
+                return false;
+			} else {
+                return true;
+            }
 		}
 
 		public override void PreComplete (float timeToCompletion, Hero hero) { }
@@ -110,6 +122,7 @@ public class Hero : MonoBehaviour {
 
 		public TurninNoteCommand(Note note) {
 			this.note = note;
+			Logger.Instance.LogAction ("Note", "Turnin Command Issued", this.note.number);
 		}
 
 		public override void complete (Hero hero) {
@@ -122,10 +135,15 @@ public class Hero : MonoBehaviour {
 
 		public override void PreComplete (float timeToCompletion, Hero hero) { 
 			if (hero.minionsMatchNote (this.note)) {
+				Logger.Instance.LogAction ("Note", "Turnin Successful", this.note.number);
 				LevelManager.singleton.PrePlayNote (this.note, timeToCompletion);
 			} else {
-				if (hero.minionsCarrying.Count != 0)
+				if (hero.minionsCarrying.Count != 0) {
+					Logger.Instance.LogAction ("Note", "Turnin Failed", this.note.number);
 					LevelManager.singleton.PreFailNote (this.note, timeToCompletion);
+				} else {
+					Logger.Instance.LogAction ("Note", "Clicked with No Minions", this.note.number);
+				}
 			}
 		}
 	}
@@ -246,11 +264,21 @@ public class Hero : MonoBehaviour {
 		public static readonly float MinionSpacing = 0.6f;
 	}
 	
-	private void SetDownMinions() {
+	private void SetDownMinions(Minion start=null) {
+        bool seen = start == null;
+        List<Minion> toRemove = new List<Minion>();
 		foreach (Minion m in this.minionsCarrying) {
-			m.DetachToScene(this.transform.parent);
+            seen |= (m == start);
+            if (seen)
+            {
+                toRemove.Add(m);
+                m.DetachToScene(this.transform.parent);
+            }
 		}
-		this.minionsCarrying.Clear();
+        foreach (Minion r in toRemove)
+        {
+            this.minionsCarrying.Remove(r);
+        }
 	}
 
 	private void DestroyMinions() {
@@ -272,17 +300,30 @@ public class Hero : MonoBehaviour {
 
 		//minion.transform.position += this.minionStackHeight;
 		minion.transform.position += Vector3.back * this.minionsCarrying.Count;
-        
-		this.minionsCarrying.Add (minion);
+
+        this.minionsCarrying.Add (minion);
 	}
 
 	public void CompletePickupMinion(Minion minion) {
 		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
 			this.SetDownMinions ();
 
+        Logger.Instance.LogAction("Minion", "Pickup completed", minion.name);
         this.PickupMinion(minion);
-        this.levelManager.MinionPickedUp();
-	}
+
+        if (this.levelManager.ChordsAllowed())
+        {
+            Minion s = minion;
+            while (1 == s.supporting.Count)
+            {
+                s = s.supporting[0];
+                Logger.Instance.LogAction("Minion", string.Format("Picking up {0} (on stack above) {1}", s.name, minion.name), s.name);
+                this.PickupMinion(s);
+            }
+        }
+
+        minion.StopSupportingAll();
+    }
 
 	private string getMinionLetters() {
 		string letters = "";

@@ -8,4 +8,8 @@ class UserProfile(models.Model):
     bio = models.CharField(max_length=430, null=True)
     profile_picture_url = models.CharField(null=True, max_length=256)
 
+class LogFile(models.Model):
+    session_id = models.CharField(max_length=48)
+    filename = models.CharField(max_length=64)
+
 

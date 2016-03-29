@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -8,6 +9,8 @@ public class LevelManager : MonoBehaviour {
 	
 	public uint levelNumber;
 	public uint maxLives = 3;
+
+    public bool UseTutorials = false;
 
 	public GameObject[] lifePrefabs;
 	public GameObject allLivesLostPrefab;
@@ -80,6 +83,8 @@ public class LevelManager : MonoBehaviour {
 
 		public static readonly Color32 semiTransparent = new Color32(0xFF, 0xFF, 0xFF, 0x80);
 
+        public static readonly Color32 superTransparent = new Color32(040, 0x40, 0x40, 0x40);
+
 		public static readonly float lifeDistance = 0.2f;
 	}
 
@@ -114,6 +119,8 @@ public class LevelManager : MonoBehaviour {
 		// Correct Match
 		this.notesRemaining--;
 
+		Logger.Instance.LogAction ("LevelManager", "Progress", string.Format ("{0} Notes Remaining, {1} Lives Remaining", this.notesRemaining, this.livesRemaining));
+
 		Superdog.singleton.HideHelp ();
 
 		if (this.notesRemaining == 0)
@@ -126,6 +133,8 @@ public class LevelManager : MonoBehaviour {
 		yield return new WaitForSeconds (delay);
 
 		this.LoseLife ();
+
+		Logger.Instance.LogAction ("LevelManager", "Progress", string.Format ("{0} Notes Remaining, {1} Lives Remaining", this.notesRemaining, this.livesRemaining));
 	}
 
 	public bool StillNeedsMinion(Minion m) {
@@ -161,6 +170,16 @@ public class LevelManager : MonoBehaviour {
 	private void DimChildren(GameObject obj, GameObject except=null) {
 		this.SetChildrenColor (obj, Constants.semiTransparent, except);
 	}
+
+    private void SuperdimChildren(GameObject obj)
+    {
+        this.SetChildrenColor(obj, Constants.superTransparent, null);
+    }
+
+    public void ClearBackground()
+    {
+        Destroy(this.gameObject);
+    }
 
 	private void UndimChildren(GameObject obj) {
 		this.SetChildrenColor (obj, new Color32 (0xFF, 0xFF, 0xFF, 0xFF));
@@ -203,9 +222,14 @@ public class LevelManager : MonoBehaviour {
 
 		yield return new WaitForSeconds (clip.length + 0.2f);
 
-		DontDestroyOnLoad (this.measureTransform.gameObject);
-		GameManager.SetMeasure (this.measureTransform.gameObject, this.measureTransform);
-		Application.LoadLevel ("LevelSelection");
+        this.SuperdimChildren(this.gameObject);
+
+        // @DEPRECATED
+        //DontDestroyOnLoad (this.measureTransform.gameObject);
+        //GameManager.SetMeasure (this.measureTransform.gameObject, this.measureTransform);
+        //SceneManager.LoadScene("LevelSelection");
+
+        LevelSelection.LevelCompleted(this.levelNumber, this.measureTransform, this);
 	}
 
 
@@ -243,6 +267,7 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void HelpRequested () {
+		Logger.Instance.LogAction ("LevelManager", "Help Requested", string.Format ("{0} Lives Remaining. Is tutorial: {1}", this.livesRemaining, this.isTutorialLevel));
 		if (!this.isTutorialLevel) {
 			this.LoseLife();
 		}
@@ -289,7 +314,8 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	public void Retry () {
-		Application.LoadLevel (Application.loadedLevelName);
+		Logger.Instance.LogAction ("LevelManager", "Restart", "");
+        SceneManager.LoadScene(Application.loadedLevelName);
 	}
 
 	private uint notesRemaining;
@@ -356,6 +382,10 @@ public class LevelManager : MonoBehaviour {
 	}
 	
 	private void InitTutorials() {
+        if (!this.UseTutorials)
+        {
+            return;
+        }
 		this.tutorialBoxesRemaining = this.tutorialPrefabs.Length;
 		if (this.showingTutorials) {
 			StartCoroutine( this.OpenFirstTutorialBox());
@@ -418,6 +448,7 @@ public class LevelManager : MonoBehaviour {
 
 		Button completeButton = box.GetComponentInChildren<Button> ();
 		if (completeButton != null) {
+			// TODO
 			completeButton.onClick.AddListener(this.CloseTutorialBox);
 		}
 
@@ -444,13 +475,24 @@ public class LevelManager : MonoBehaviour {
 			this.CloseTutorialBox ();
 	}
 
-    public void MinionPickedUp()
+    public void MinionPickedUp(Minion baseMinion, HashSet<Minion> sanityCheck=null)
     {
+        if (sanityCheck == null)
+        {
+            sanityCheck = new HashSet<Minion>();
+        }
+
+        sanityCheck.Add(baseMinion);
+
         // When a minion is picked up, we need to make sure
         // there were no other minions on top of it
-        foreach (Minion m in this.minions)
+        foreach (Minion m in baseMinion.supporting)
         {
-            m.EnableGravity();
+            if (!sanityCheck.Contains(m))
+            {
+                m.EnableGravity();
+                MinionPickedUp(m);
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public class LevelSelectionGrid : MonoBehaviour {
 
@@ -82,6 +83,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	private void VersionSetup() {
 		// set unlockTiles array equal to the right array set
 		if (GameManager.integratedVersion == true) {
+			Logger.Instance.LogAction ("Version", "Set", "Integrated");
 			// disable the tiles from other version
 			unlockTiles = musicUnlockTiles;
 			DisableTilesFor("comicLocks");
@@ -94,6 +96,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 			comicPlayButton.SetActive (false);
 		} else {
+			Logger.Instance.LogAction ("Version", "Set", "Non-Integrated");
 			// disable the tiles from other version
 			unlockTiles = comicUnlockTiles;
 			DisableTilesFor("musicLocks");
@@ -136,7 +139,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 	// function to load the level play 
 	public void PlayLevel() {
 		playLevelButton.transform.Translate (playLevelButton.transform.position.x + 150, playLevelButton.transform.position.y, playLevelButton.transform.position.z);
-		Application.LoadLevel("Level" + GameManager.currentLevel);
+        SceneManager.LoadScene("Level" + GameManager.currentLevel);
 	}
 
 	// plays the unlocked song according to the unlocked levels
@@ -165,7 +168,7 @@ public class LevelSelectionGrid : MonoBehaviour {
 
 		// When the all levels have been unlocked, transition to outro cutscenes
 		if (GameManager.currentLevel == GameManager.numOfLevels + 1) {
-			Application.LoadLevel("OutroCutscene1");
+            SceneManager.LoadScene("OutroCutscene1");
 		}
 	}
 

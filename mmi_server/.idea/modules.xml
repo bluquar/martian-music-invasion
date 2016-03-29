@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$USER_HOME$/Dropbox/Code/Python/logicbook/django-user/mmi_server/.idea/mmi_server.iml" filepath="$USER_HOME$/Dropbox/Code/Python/logicbook/django-user/mmi_server/.idea/mmi_server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/mmi_server.iml" filepath="$PROJECT_DIR$/.idea/mmi_server.iml" />
     </modules>
   </component>
 </project>

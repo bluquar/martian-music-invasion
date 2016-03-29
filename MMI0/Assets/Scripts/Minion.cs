@@ -1,12 +1,57 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Minion : MonoBehaviour {
 
     public char letter;
     public bool beingCarried;
+
     public bool beingSupported;
+    public List<Minion> supporting;
+    public Minion supporter;
+
+    public void StartSupporting(Minion other)
+    {
+        if (!this.supporting.Contains(other))
+        {
+            this.supporting.Add(other);
+        }
+        other.DisableGravity();
+        other.beingSupported = true;
+        other.supporter = this;
+    }
+
+    public void StopSupporting(Minion other)
+    {
+        this.supporting.Remove(other);
+        other.supporter = null;
+        other.beingSupported = false;
+    }
+
+    public void StopBeingSupported()
+    {
+        if (this.supporter != null)
+        {
+            this.supporter.StopSupporting(this);
+        }
+        this.beingSupported = false;
+        this.EnableGravity();
+        this.StopSupportingAll();
+    }
+
+    public void StopSupportingAll()
+    {
+        foreach (Minion m in this.supporting)
+        {
+            m.supporter = null;
+            m.beingSupported = false;
+            m.EnableGravity();
+            m.StopSupportingAll();
+        }
+        this.supporting = new List<Minion>();
+    }
 
 	/* Detach from the hero onto the scene as the parent
 	 */
@@ -15,7 +60,7 @@ public class Minion : MonoBehaviour {
 		this.transform.parent = scene;
 		this.SetScale (/*reversed: */ false);
         this.beingCarried = false;
-        this.EnableGravity ();
+        this.StopBeingSupported();
 		this.transform.position = new Vector3 (
 			this.transform.position.x, this.transform.position.y,
 			this.initialPosition.z
@@ -42,6 +87,8 @@ public class Minion : MonoBehaviour {
 	{
 		public static readonly Vector3 ForwardScale = new Vector3 (1, 1, 1);
 		public static readonly Vector3 BackwardScale = new Vector3 (-1, 1, 1);
+        public static readonly float StackHeightFactor = 0.75f;
+        public static readonly float StackWidthThreshold = 0.35f;
 	}
 	
 	// // Private Members // //
@@ -54,6 +101,7 @@ public class Minion : MonoBehaviour {
     private bool clicksEnabled;
 
     private float height;
+    private float width;
 	private Rigidbody2D rigidBody;
 
     /*private abstract class MinionSupport
@@ -71,12 +119,14 @@ public class Minion : MonoBehaviour {
 	{
 		this.rigidBody = GetComponent<Rigidbody2D> ();
         this.beingCarried = false;
-        this.beingSupported = false;
+        this.StopBeingSupported();
 	}
 
 	protected void Start () 
 	{
-		this.initialPosition = this.transform.position;
+        this.supporting = new List<Minion>();
+
+        this.initialPosition = this.transform.position;
 		this.lastRestingPosition = this.initialPosition;
 
 		this.hero = Hero.singleton;
@@ -87,7 +137,8 @@ public class Minion : MonoBehaviour {
 
 		LevelManager.singleton.RegisterMinion (this);
 
-        this.height = this.backgroundCollider.bounds.size.y;
+        this.height = this.GetComponent<SpriteRenderer>().bounds.size.y;
+        this.width = this.GetComponent<SpriteRenderer>().bounds.size.x;
     }
 
 	protected void OnMouseDown()
@@ -103,12 +154,12 @@ public class Minion : MonoBehaviour {
 
 	/* Called when the minion touches something with a 2D Collider
 	 */
-	protected void OnTriggerEnter2D(Collider2D other) 
+	protected void OnTriggerStay2D(Collider2D other) 
 	{
         Minion otherM;
 
-        if (this.beingCarried) {
-			// Ignore collisions while being carried
+        if (this.beingCarried || this.beingSupported) {
+			// Ignore collisions while being carried or supported
 			return;
 		}
 		else if (other == this.backgroundCollider) {
@@ -119,15 +170,24 @@ public class Minion : MonoBehaviour {
 			// Collided with a note
 			return;
 		}
+        else if (other.GetComponentInParent<Superdog>() != null)
+        {
+            // Collided with superdog
+            return;
+        }
 
         else if ((otherM = other.GetComponentInParent<Minion>()) != null) {
             if (otherM.beingCarried)
+            {
                 // Don't collide with minions that are being carried or unsupported
                 return;
-            
+            }
+
             else if (otherM.transform.position.y > this.transform.position.y)
+            {
                 // Can't really land on something above you
                 return;
+            }
 
             else if (!otherM.beingSupported)
             {
@@ -142,9 +202,18 @@ public class Minion : MonoBehaviour {
             else
             {
                 // Collided with a minion that is being supported
-                this.transform.position = otherM.transform.position + (Vector3.up * this.height);
-                this.DisableGravity();
-                return;
+                if ((Constants.StackWidthThreshold * this.width > Mathf.Abs(this.transform.position.x - otherM.transform.position.x)) &&
+                    (Constants.StackHeightFactor * this.height >= Mathf.Abs(this.transform.position.y - otherM.transform.position.y)))
+                {
+                    this.transform.position = new Vector3(this.transform.position.x, other.transform.position.y +
+                        this.height * Constants.StackHeightFactor, this.transform.position.z);
+                    otherM.StartSupporting(this);
+                    return;
+                }
+                else
+                {
+                    return;
+                }
             }
 
         }
@@ -174,7 +243,9 @@ public class Minion : MonoBehaviour {
 	public void ResetPosition() 
 	{
 		this.transform.position = this.lastRestingPosition;
-		this.DisableGravity ();
+        this.StopBeingSupported();
+        this.StopSupportingAll();
+		this.EnableGravity ();
 		this.rigidBody.velocity = Vector2.zero;
 	}
 
@@ -189,14 +260,13 @@ public class Minion : MonoBehaviour {
 		this.rigidBody.isKinematic = true;
 		this.lastRestingPosition = this.transform.position;
         this.beingSupported = true;
-	}
+    }
 	
 	public void EnableGravity() 
 	{
         if (!this.beingCarried)
         {
             this.rigidBody.isKinematic = false;
-            this.beingSupported = false;
         }
 	}
 }
