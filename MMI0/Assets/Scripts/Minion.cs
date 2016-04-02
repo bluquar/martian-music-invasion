@@ -71,6 +71,10 @@ public class Minion : MonoBehaviour {
 	 */
 	public void AttachToHero(Hero hero) 
 	{
+        if (this.supporter != null)
+        {
+            this.supporter.supporting.Remove(this);
+        }
 		this.beingCarried = true;
 		this.transform.parent = hero.transform;
 		this.DisableGravity();

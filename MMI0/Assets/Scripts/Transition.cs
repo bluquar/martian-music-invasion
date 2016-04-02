@@ -11,12 +11,36 @@ public class Transition
         Activate
     }
 
-    private static float SmoothLerp(float t)
+    public enum LerpType
+    {
+        Smooth,
+        Accelerate
+    }
+
+    public static float SmoothLerp(float t)
     {
         //smoothstep
         return t * t * (3f - 2f * t);
         //smootherstep (https://chicounity3d.wordpress.com/2014/05/23/how-to-lerp-like-a-pro/)
         // return t * t * t * (t * (6f * t - 15f) + 10f);
+    }
+
+    public static float AccelerateLerp(float t)
+    {
+        return t * t;
+    }
+
+    public static float Lerp(float t, LerpType lerp)
+    {
+        switch (lerp)
+        {
+            case LerpType.Accelerate:
+                return AccelerateLerp(t);
+            case LerpType.Smooth:
+                return SmoothLerp(t);
+            default:
+                return t;
+        }
     }
 
     public static IEnumerator Translate(Transform t, Vector3 destination, float duration)
@@ -28,9 +52,25 @@ public class Transition
         {
             t.position = Vector3.Lerp(startPosition, destination, SmoothLerp(elapsed / duration));
             yield return new WaitForEndOfFrame();
+            if (t.gameObject == null) yield break;
             elapsed += Time.deltaTime;
         } while (elapsed <= duration);
         t.position = destination;
+    }
+
+    public static IEnumerator StandingWave(Transform t, Vector3 axis, float amplitude, int periods, float duration)
+    {
+        float omega = 2 * Mathf.PI * periods / duration;
+        Vector3 zero = t.position;
+        float elapsed = 0f;
+
+        do
+        {
+            t.position = zero + amplitude * axis * Mathf.Sin(omega * elapsed);
+            yield return new WaitForEndOfFrame();
+            elapsed += Time.deltaTime;
+        } while (elapsed <= duration);
+        t.position = zero;
     }
 
     public static IEnumerator Resize(Transform t, Vector3 destScale, float duration)
@@ -42,37 +82,83 @@ public class Transition
         {
             t.localScale = Vector3.Lerp(startScale, destScale, SmoothLerp(elapsed / duration));
             yield return new WaitForEndOfFrame();
+            if (t.gameObject == null) yield break;
             elapsed += Time.deltaTime;
         } while (elapsed <= duration);
         t.localScale = destScale;
     }
 
-    public static IEnumerator TranslateResize(GameObject obj, Vector3 destPos, Vector2 destSize, float duration)
+    public static IEnumerator TranslateRescale(GameObject obj, Vector3 destPos, Vector2 destScale, float duration, LerpType lerp)
     {
         float elapsed = 0f;
         float p;
 
         Transform t = obj.transform;
-
-        SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
-        Vector2 startSize = sr.bounds.size;
-
         Vector3 startScale = t.localScale;
-        Vector3 destScale = new Vector3(startScale.x * (destSize.x / startSize.x),
-            startScale.y * (destSize.y / startSize.y), t.localScale.z);
 
         Vector3 startPos = new Vector3(t.position.x, t.position.y, destPos.z);
 
         do
         {
-            p = SmoothLerp(elapsed / duration);
+            p = Lerp(elapsed / duration, lerp);
+            t.position = Vector3.Lerp(startPos, destPos, p);
+            t.localScale = Vector3.Lerp(startScale, destScale, p);
+            yield return new WaitForEndOfFrame();
+            if (t.gameObject == null) yield break;
+            elapsed += Time.deltaTime;
+        } while (elapsed <= duration);
+        t.position = destPos;
+        t.localScale = destScale;
+    }
+
+    public static IEnumerator TranslateResize(GameObject obj, Vector3 destPos, Vector2 destSize, float duration, LerpType lerp)
+    {
+        //float elapsed = 0f;
+        // float p;
+
+        Transform t = obj.transform;
+        SpriteRenderer sr = obj.GetComponent<SpriteRenderer>();
+        Vector2 startSize = sr.bounds.size;
+        Vector3 startScale = t.localScale;
+        Vector3 destScale = new Vector3(startScale.x * (destSize.x / startSize.x),
+            startScale.y * (destSize.y / startSize.y), t.localScale.z);
+        yield return TranslateRescale(obj, destPos, destScale, duration, lerp);
+
+        /*Vector3 startPos = new Vector3(t.position.x, t.position.y, destPos.z);
+
+        do
+        {
+            p = Lerp(elapsed / duration, lerp);
             t.position = Vector3.Lerp(startPos, destPos, p);
             t.localScale = Vector3.Lerp(startScale, destScale, p);
             yield return new WaitForEndOfFrame();
             elapsed += Time.deltaTime;
         } while (elapsed <= duration);
         t.position = destPos;
-        t.localScale = destScale;
+        t.localScale = destScale;*/
+    }
+
+    public static IEnumerator TranslateResize(GameObject obj, Vector3 destPos, Vector2 destSize, float duration)
+    {
+        yield return TranslateResize(obj, destPos, destSize, duration, LerpType.Smooth);
+    }
+
+    public static IEnumerator Rotate(Transform t, float duration, float initial, float final)
+    {
+        float elapsed = 0f;
+        float rotation;
+
+        do
+        {
+            rotation = initial + (final - initial) * SmoothLerp(elapsed / duration);
+            t.rotation = Quaternion.identity;
+            t.Rotate(Vector3.forward, rotation);
+            yield return new WaitForEndOfFrame();
+            if (t.gameObject == null) yield break;
+            elapsed += Time.deltaTime;
+        } while (elapsed <= duration);
+        t.rotation = Quaternion.identity;
+        t.Rotate(Vector3.forward, final);
     }
 
     public static IEnumerator TranslateMovingTarget(Transform t, Vector3 destination, Transform target, float duration)
@@ -89,6 +175,7 @@ public class Transition
 
             t.position = Vector3.Lerp(startPosition, dest, SmoothLerp(elapsed / duration));
             yield return new WaitForEndOfFrame();
+            if (t.gameObject == null) yield break;
             elapsed += Time.deltaTime;
         } while (elapsed <= duration);
         t.position = destination;
@@ -217,8 +304,6 @@ public class Transition
     {
         yield return TransitionColor(obj, null, duration, startColor, destColor, false);
     }
-
-
 
     public static IEnumerator TransitionAlpha(GameObject obj, float duration, float initial, float final, bool enableSr)
     {

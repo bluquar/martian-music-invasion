@@ -1,5 +1,9 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
+using System;
+using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 
 public class CutsceneAudio : MonoBehaviour {
 
@@ -28,9 +32,53 @@ public class CutsceneAudio : MonoBehaviour {
 			Destroy(ca.gameObject);
 		}
 	}
+
+    public  void ManualChangeScene (string sceneName)
+    {
+        ChangeScene(sceneName);
+        //Application.LoadLevel(sceneName);
+        SceneManager.LoadScene(sceneName);
+        /*foreach (SessionManager sm in this.gameObject.transform.root.GetComponentsInChildren<SessionManager>())
+        {
+            sm.LoadLevel(sceneName);
+        }*/
+    }
 	
 	// Update is called once per frame
 	void Update () {
+        if (Input.GetKey(KeyCode.A) && Input.GetKey(KeyCode.U) && Input.GetKey(KeyCode.T) && Input.GetKey(KeyCode.O))
+        {
+            Debug.Log("Autoplay Beginning at " + System.DateTime.Now.ToUniversalTime());
+            LevelSelection.BeginAutoplay();
+        }
 
+        if (LevelSelection.IsAutoplaying())
+        {
+            
+            switch (SceneManager.GetActiveScene().name /* Application.loadedLevelName */)
+            {
+                case "TitleScene":
+                    ManualChangeScene("IntroCutscene1");
+                    break;
+                case "IntroCutscene1":
+                    ManualChangeScene("IntroCutscene2");
+                    break;
+                case "IntroCutscene2":
+                    ManualChangeScene("IntroCutscene3");
+                    break;
+                case "IntroCutscene3":
+                    ManualChangeScene("IntroCutscene4");
+                    break;
+                case "IntroCutscene4":
+                    ManualChangeScene("LetsGoScene");
+                    break;
+                case "LetsGoScene":
+                    ManualChangeScene("LevelSelection");
+                    break;
+                default:
+                    Debug.Log(SceneManager.GetActiveScene().name /* Application.loadedLevelName */);
+                    break;
+            }
+        }
 	}
 }

@@ -18,7 +18,7 @@ public class TutorialBox : MonoBehaviour {
 	}
 
 	public void Open(List<Minion> minions, List<Note> notes) {
-		Transform parent = this.transform.parent;
+		//Transform parent = this.transform.parent;
 
 		this.minion = null;
 		foreach (Minion m in minions) {

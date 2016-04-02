@@ -160,8 +160,6 @@ public class BonusLevelManager : MonoBehaviour {
     public float SelectionShowMargin = 0.15f;
     public float BrightnessTransitionTime = 0.7f;
 
-    private bool TutorialShown;
-
     private Vector3 HearBox1Initial;
     private Vector3 HearBox2Initial;
     private Vector3 SeeBox1Initial;
@@ -175,17 +173,10 @@ public class BonusLevelManager : MonoBehaviour {
         ScreenHeight = Camera.allCameras[0].orthographicSize * 2;
         ScreenWidth = ScreenHeight * Camera.allCameras[0].aspect;
 
-        TutorialShown = false;
         ShowingTransform = Vector3.back * 4.5f;
         HidingTransform = ShowingTransform + Vector3.up * ScreenHeight;
         HideObject(this.gameObject);
     }
-
-    // 1 or 2. Indicates whether Hear1 or Hear2 contains the "high uncertainty" choice
-    private int WhichHearUncertain;
-
-    // 1 or 2. Indicates whether See1 or See2 contains the "high uncertainty" choice
-    private int WhichSeeUncertain;
 
     private List<GameObject> FillWithTextures(GameObject obj, Texture2D[] textures)
     {
@@ -249,9 +240,9 @@ public class BonusLevelManager : MonoBehaviour {
 
     private void LoadOptions(BonusLevel item)
     {
+
         if (Random.value > 0.5f)
         {
-            WhichHearUncertain = 1;
             Hear1.Textures = item.MusicHighUncertaintyImages;
             Hear1.Clips = item.MusicHighUncertaintyAudio;
             Hear2.Textures = item.MusicLowUncertaintyImages;
@@ -259,7 +250,6 @@ public class BonusLevelManager : MonoBehaviour {
             Logger.Instance.LogAction("BonusLevel", "Music High Uncertainty Box", "1");
         } else
         {
-            WhichHearUncertain = 2;
             Hear2.Textures = item.MusicHighUncertaintyImages;
             Hear2.Clips = item.MusicHighUncertaintyAudio;
             Hear1.Textures = item.MusicLowUncertaintyImages;
@@ -269,14 +259,12 @@ public class BonusLevelManager : MonoBehaviour {
 
         if (Random.value > 0.5f)
         {
-            WhichSeeUncertain = 1;
             See1.Textures = item.StoryHighUncertaintyImages;
             See2.Textures = item.StoryLowUncertaintyImages;
             Logger.Instance.LogAction("BonusLevel", "Spaceship High Uncertainty Box", "1");
         }
         else
         {
-            WhichSeeUncertain = 2;
             See2.Textures = item.StoryHighUncertaintyImages;
             See1.Textures = item.StoryLowUncertaintyImages;
             Logger.Instance.LogAction("BonusLevel", "Spaceship High Uncertainty Box", "2");
@@ -318,6 +306,17 @@ public class BonusLevelManager : MonoBehaviour {
         Selection.StorySelectionMade = false;
 
         yield return Show();
+
+        if (LevelSelection.IsAutoplaying())
+        {
+            yield return new WaitForSeconds(0.4f);
+            DismissTutorialOverlay();
+            yield return new WaitForSeconds(0.4f);
+            SelectMusic(1 + (int)(2 * Random.value));
+            yield return new WaitForSeconds(0.4f);
+            SelectStory(1 + (int)(2 * Random.value));
+        }
+
         yield return new WaitUntil(SelectionMade);
         Captions.SetActive(false);
         yield return ShowSelection();
@@ -614,8 +613,8 @@ public class BonusLevelManager : MonoBehaviour {
         float hearWidth = HearBoxFront.GetComponent<RectTransform>().rect.width;
         float hearScale = HearBoxFront.GetComponent<RectTransform>().lossyScale.x;
 
-        float bgRight = bgBounds.center.x + bgBounds.extents.x;
-        float bgLeft = bgBounds.center.x - bgBounds.extents.x;
+        //float bgRight = bgBounds.center.x + bgBounds.extents.x;
+        //float bgLeft = bgBounds.center.x - bgBounds.extents.x;
 
         Vector3 seeBoxDest = new Vector3((ScreenWidth / 2) - (seeWidth * seeScale / 2), 
             SeeBoxFront.transform.position.y, SeeBoxFront.transform.position.z);

@@ -18,12 +18,12 @@ public class Hero : MonoBehaviour {
         this.commandQ.Enqueue(new MoveCommand(dest));
     }
 
-    public void PickUpMinion(Minion minion)
+    public void PickUpMinion(Minion minion, bool includeSupported=true)
     {
 		if (this.minionsCarrying.Contains (minion)) {
 			this.SetDownMinions (minion);
 		} else {
-			this.commandQ.Enqueue (new PickupMinionCommand (minion, this));
+			this.commandQ.Enqueue (new PickupMinionCommand (minion, this, includeSupported));
 		}
     }
 
@@ -83,16 +83,18 @@ public class Hero : MonoBehaviour {
 
 		private Minion minion;
 		private Hero hero;
+        private bool includeSupported;
 
-		public PickupMinionCommand(Minion minion, Hero hero) {
+        public PickupMinionCommand(Minion minion, Hero hero, bool includeSupported) {
 			this.minion = minion;
 			this.hero = hero;
-			Logger.Instance.LogAction ("Minion", "Pickup Command Issued", this.minion.name);
+            this.includeSupported = includeSupported;
+            Logger.Instance.LogAction ("Minion", "Pickup Command Issued", this.minion.name);
 		}
 
 		public override void complete (Hero hero) {
 			Logger.Instance.LogAction ("Minion", "Pickup Complete", this.minion.name);
-			hero.CompletePickupMinion (this.minion);
+			hero.CompletePickupMinion (this.minion, includeSupported);
 		}
 
 		public override bool stillValid () {
@@ -304,21 +306,27 @@ public class Hero : MonoBehaviour {
         this.minionsCarrying.Add (minion);
 	}
 
-	public void CompletePickupMinion(Minion minion) {
+	public void CompletePickupMinion(Minion minion, bool includeSupported=true) {
 		if (this.minionsCarrying.Count != 0 && !this.levelManager.ChordsAllowed ())
 			this.SetDownMinions ();
 
         Logger.Instance.LogAction("Minion", "Pickup completed", minion.name);
         this.PickupMinion(minion);
 
-        if (this.levelManager.ChordsAllowed())
+        if (this.levelManager.ChordsAllowed() && includeSupported)
         {
             Minion s = minion;
             while (1 == s.supporting.Count)
             {
                 s = s.supporting[0];
-                Logger.Instance.LogAction("Minion", string.Format("Picking up {0} (on stack above) {1}", s.name, minion.name), s.name);
-                this.PickupMinion(s);
+                if (s != null)
+                {
+                    Logger.Instance.LogAction("Minion", string.Format("Picking up {0} (on stack above) {1}", s.name, minion.name), s.name);
+                    this.PickupMinion(s);
+                }else
+                {
+                    break;
+                }
             }
         }
 

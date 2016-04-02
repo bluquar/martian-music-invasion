@@ -3,8 +3,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class LevelSelection : MonoBehaviour {
+
+    public static bool Autoplay = false;
+
+    public static void BeginAutoplay()
+    {
+        Autoplay = true;
+    }
+
+    public static bool IsAutoplaying()
+    {
+        return Autoplay;
+    }
 
     public bool DebugBonus;
 
@@ -43,6 +56,8 @@ public class LevelSelection : MonoBehaviour {
     public GameObject LoadingButton;
     public Scrollbar ScrollBar;
 
+    public EventSystem SavedEventSystem;
+
     Vector3 ScrollBarInitial;
 
     public void ScrollBarValueUpdated(int value)
@@ -65,18 +80,16 @@ public class LevelSelection : MonoBehaviour {
 
     public float TileZ = -1f;
 
-    private enum GameVersion
+    private static GameVersion.T Version;
+
+    public static void SetVersion(GameVersion.T v)
     {
-        Integrated,
-        NotIntegrated
-    };
-    private static GameVersion Version;
+        Version = v;
+    }
 
     private static LevelSelection Instance = null;
 
     private static bool LevelHasStarted = false;
-
-    private List<GameObject> LevelListObjects = new List<GameObject>();
 
     private static uint LevelsCompleted;
 
@@ -118,7 +131,7 @@ public class LevelSelection : MonoBehaviour {
             DontDestroyOnLoad(this.gameObject);
 
             LevelsCompleted = 0;
-            Version = GameVersion.Integrated;
+            //Version = GameVersion.T.NotIntegrated;
 
             SetDerivedParameters();
             Objects = new LLIObject[Instance.LevelList.Length];
@@ -144,9 +157,9 @@ public class LevelSelection : MonoBehaviour {
     {
         switch (Version)
         {
-            case GameVersion.Integrated:
+            case GameVersion.T.Integrated:
                 return false;
-            case GameVersion.NotIntegrated:
+            case GameVersion.T.NotIntegrated:
                 return LevelIsLocked(i);
             default:
                 Debug.Log(string.Format("Invalid GameVersion: {0}", Version));
@@ -158,9 +171,9 @@ public class LevelSelection : MonoBehaviour {
     {
         switch (Version)
         {
-            case GameVersion.Integrated:
+            case GameVersion.T.Integrated:
                 return LevelIsLocked(i);
-            case GameVersion.NotIntegrated:
+            case GameVersion.T.NotIntegrated:
                 return false;
             default:
                 Debug.Log(string.Format("Invalid GameVersion: {0}", Version));
@@ -250,7 +263,7 @@ public class LevelSelection : MonoBehaviour {
         {
             height += LevelHeight(row);
         }
-        return height;
+        return height + (rowCount - 1) * (Instance.TileMarginY);
     }
 
     private static Dictionary<uint, float> LevelCenterYMemoized;
@@ -416,7 +429,7 @@ public class LevelSelection : MonoBehaviour {
         }
 
         SpriteRenderer ball = obj.transform.FindChild("Ball").gameObject.GetComponent<SpriteRenderer>();
-        SpriteRenderer message = obj.transform.FindChild("Message").gameObject.GetComponent<SpriteRenderer>();
+        //SpriteRenderer message = obj.transform.FindChild("Message").gameObject.GetComponent<SpriteRenderer>();
         Transform canvas = obj.transform.FindChild("Canvas");
         Text statusText = canvas.FindChild("Status Text").gameObject.GetComponent<Text>();
         Text numberText = canvas.FindChild("Number Text").gameObject.GetComponent<Text>();
@@ -537,10 +550,10 @@ public class LevelSelection : MonoBehaviour {
 
         switch (Version)
         {
-            case GameVersion.Integrated:
+            case GameVersion.T.Integrated:
                 buttonPos = Objects[LevelsCompleted].measureTile.transform.position;
                 break;
-            case GameVersion.NotIntegrated:
+            case GameVersion.T.NotIntegrated:
             default:
                 buttonPos = Objects[LevelsCompleted].comicTile.transform.position;
                 break;
@@ -602,7 +615,7 @@ public class LevelSelection : MonoBehaviour {
         Vector3 startPosition = transform.position;
         Vector3 destPosition = Vector3.up * TotalHeight();
 
-        AsyncOperation ao = SceneManager.LoadSceneAsync(string.Format("Level{0}", LevelsCompleted + 1));
+        AsyncOperation ao = SceneManager.LoadSceneAsync(Instance.LevelList[LevelsCompleted].LevelSceneName);
 
         while (!ao.isDone)
         {
@@ -619,11 +632,61 @@ public class LevelSelection : MonoBehaviour {
 
         Instance.ScrollBar.gameObject.SetActive(false);
 
+        RemoveEventSystem();
+
         Logger.Instance.LogAction("LevelSelection", "Level Selection Screen Hidden", (LevelsCompleted + 1).ToString());
+    }
+
+    public static void RemoveEventSystem()
+    {
+        return;
+        /* EventSystem es = Instance.transform.root.GetComponentInChildren<EventSystem>();
+        es.gameObject.SetActive(false);
+        Instance.SavedEventSystem = es;
+        es.transform.parent = null; */
+    }
+
+    public static void RestoreEventSystem()
+    {
+        return;
+        /* EventSystem es = Instance.SavedEventSystem;
+        es.gameObject.SetActive(true);
+        Instance.SavedEventSystem = null;
+        es.transform.parent = Instance.transform; */
     }
 
     public static void LevelCompleted(uint levelNum, Transform measure, LevelManager lm)
     {
+        Logger.Instance.LogAction("LevelSelection", "Level Completed", (LevelsCompleted + 1).ToString());
+
+        LevelHasStarted = false;
+        bool needsNewAudio = MeasureIsLocked(levelNum - 1);
+        bool isBonusLevel = (levelNum % 3) == 0 || Instance.DebugBonus;
+
+        LevelsCompleted = levelNum;
+
+        UpdateHeader(levelNum);
+
+        if (LevelsCompleted != Instance.LevelList.Length)
+        {
+            UpdateHeader(levelNum + 1);
+        }
+
+        if (needsNewAudio)
+        {
+            Instance.StartCoroutine(LoadNewAudio(levelNum - 1));
+        }
+        
+        Instance.StartCoroutine(DropLevelSelectionGrid(measure, null, lm));
+        Instance.StartCoroutine(ReplaceMeasure(measure, isBonusLevel));
+    }
+
+    public static void AddressingLevelCompleted(uint levelNum, Transform measure, AddressingController lm)
+    {
+        //measure.parent = Instance.gameObject.transform;
+        //measure.position = new Vector3(measure.position.x, measure.position.y, -6f);
+
+        HttpWriter.Flush();
         Logger.Instance.LogAction("LevelSelection", "Level Completed", (LevelsCompleted + 1).ToString());
 
         LevelHasStarted = false;
@@ -639,14 +702,14 @@ public class LevelSelection : MonoBehaviour {
         {
             Instance.StartCoroutine(LoadNewAudio(levelNum - 1));
         }
-        
-        Instance.StartCoroutine(DropLevelSelectionGrid(measure, lm));
+
+        Instance.StartCoroutine(DropLevelSelectionGrid(measure, lm, null));
         Instance.StartCoroutine(ReplaceMeasure(measure, isBonusLevel));
     }
 
     /** Drop the level selection grid into place above a level scene has been completed. 
      **/
-    private static IEnumerator DropLevelSelectionGrid(Transform measure, LevelManager lm)
+    private static IEnumerator DropLevelSelectionGrid(Transform measure, AddressingController lma, LevelManager lm)
     {
         //yield return 
 
@@ -673,8 +736,16 @@ public class LevelSelection : MonoBehaviour {
         }
         transform.position = destPosition;
         Instance.UpdateScrollbarValue();
-        
-        lm.ClearBackground();
+
+        if (lm != null)
+        {
+            lm.ClearBackground();
+        } else if (lma != null)
+        {
+            lma.ClearBackground();
+        }
+
+        RestoreEventSystem();
 
         Logger.Instance.LogAction("LevelSelection", "Level Selection Screen Showing", (LevelsCompleted + 1).ToString());
     }
@@ -695,10 +766,10 @@ public class LevelSelection : MonoBehaviour {
         Texture2D newText;
         switch (Version)
         {
-            case GameVersion.Integrated:
+            case GameVersion.T.Integrated:
                 newText = Instance.LevelList[level].measure;
                 break;
-            case GameVersion.NotIntegrated:
+            case GameVersion.T.NotIntegrated:
                 float meanSize = (startSize.x + startSize.y) / 2;
                 startSize = new Vector2(meanSize, meanSize); // Comic tiles are square
                 newText = Instance.LevelList[level].comic;
@@ -748,12 +819,12 @@ public class LevelSelection : MonoBehaviour {
 
         switch (Version)
         {
-            case GameVersion.Integrated:
+            case GameVersion.T.Integrated:
                 endSize = MeasureTileSize(level);
                 endPos = MeasureTilePos(level);
                 destTransform = Objects[level].measureTile.transform;
                 break;
-            case GameVersion.NotIntegrated:
+            case GameVersion.T.NotIntegrated:
             default:
                 endSize = ComicTileSize();
                 endPos = ComicTilePos(level);
@@ -818,10 +889,10 @@ public class LevelSelection : MonoBehaviour {
         GameObject replacing;
         switch (Version)
         {
-            case GameVersion.Integrated:
+            case GameVersion.T.Integrated:
                 replacing = Objects[level].measureTile;
                 break;
-            case GameVersion.NotIntegrated:
+            case GameVersion.T.NotIntegrated:
             default:
                 replacing = Objects[level].comicTile;
                 break;
@@ -899,10 +970,23 @@ public class LevelSelection : MonoBehaviour {
             if (level == LevelsCompleted)
             {
                 ShowPlayButton();
+                if (IsAutoplaying())
+                {
+                    Instance.PlayNextLevel();
+                }
             }
         }
 
         Logger.Instance.LogAction("LevelSelection", "Done Playing Music", (LevelsCompleted + 1).ToString());
+
+        if (LevelsCompleted == Instance.LevelList.Length)
+        {
+            // Application.LoadLevel("OutroCutscene1");
+            HttpWriter.Flush();
+            Logger.Instance.LogAction("Transitioning to Outro", "", "");
+            SceneManager.LoadScene("OutroCutscene1");
+            Destroy(Instance.gameObject);
+        }
 
     }
     /*
@@ -928,8 +1012,6 @@ public class LevelSelection : MonoBehaviour {
     }
     */
     //private string LOGGING_SERVICE_URL = Url() + "/log";
-
-    private bool stuff = false;
 
     void Update () {
 	    /*if (!stuff)

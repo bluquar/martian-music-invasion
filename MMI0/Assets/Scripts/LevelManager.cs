@@ -72,7 +72,7 @@ public class LevelManager : MonoBehaviour {
 
 	private static class Constants
 	{
-		public static readonly uint firstChordLevel = 16;
+		public static readonly uint firstChordLevel = 22;
 
 		// The amount of time that it takes an audio clip to load before playing it
 		// probably machine dependent, but fuck it for now
@@ -232,7 +232,6 @@ public class LevelManager : MonoBehaviour {
         LevelSelection.LevelCompleted(this.levelNumber, this.measureTransform, this);
 	}
 
-
 	public void RegisterNote(Note note) {
 		uint charCount;
 		foreach (char c in note.letters) {
@@ -315,7 +314,7 @@ public class LevelManager : MonoBehaviour {
 
 	public void Retry () {
 		Logger.Instance.LogAction ("LevelManager", "Restart", "");
-        SceneManager.LoadScene(Application.loadedLevelName);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name /* Application.loadedLevelName */);
 	}
 
 	private uint notesRemaining;
@@ -365,7 +364,7 @@ public class LevelManager : MonoBehaviour {
 	}
 
 	private void InitLives() {
-		Transform lives = this.transform.FindChild ("Lives");
+		//Transform lives = this.transform.FindChild ("Lives");
 
 		GameObject[] lifePrefabs = this.lifePrefabs;
 
@@ -522,6 +521,11 @@ public class LevelManager : MonoBehaviour {
 			return;
 		}
 
+        if (this.hero.minionsCarrying.Count != 0)
+        {
+            return;
+        }
+
 		List<Note> notes = new List<Note>();
 		foreach (Note n in this.notes) {
 			if (!this.notesAutoclicked.Contains(n))
@@ -551,7 +555,7 @@ public class LevelManager : MonoBehaviour {
 		}
 
 		foreach (Minion m in toPickUp) {
-			this.hero.PickUpMinion(m);
+			this.hero.PickUpMinion(m, false);
 			this.minionsAutoclicked.Add(m);
 		}
 
@@ -581,6 +585,8 @@ public class LevelManager : MonoBehaviour {
 		if (this.autoplay || Input.GetKeyDown (KeyCode.M)) {
 			this.AutoMatch();
 		}
+
+        this.autoplay = this.autoplay || LevelSelection.IsAutoplaying();
 	}
 
 }

@@ -8,13 +8,14 @@ public class ButtonUtil
         button.SetActive(true);
         return;
 
-        button.GetComponent<Image>().raycastTarget = true;
+        /* button.GetComponent<Image>().raycastTarget = true;
         button.GetComponent<Button>().enabled = true;
         button.GetComponent<CanvasRenderer>().SetAlpha(1.0f);
         foreach (CanvasRenderer cr in button.GetComponentsInChildren<CanvasRenderer>())
         {
             cr.SetAlpha(1.0f);
         }
+        */
     }
 
     public static void Hide(GameObject button)
@@ -22,12 +23,12 @@ public class ButtonUtil
         button.SetActive(false);
         return;
 
-        button.GetComponent<Image>().raycastTarget = false;
+        /* button.GetComponent<Image>().raycastTarget = false;
         button.GetComponent<Button>().enabled = false;
         button.GetComponent<CanvasRenderer>().SetAlpha(0.0f);
         foreach (CanvasRenderer cr in button.GetComponentsInChildren<CanvasRenderer>())
         {
             cr.SetAlpha(0.0f);
-        }
+        } */
     }
 }
